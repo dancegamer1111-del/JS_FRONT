@@ -228,5 +228,7 @@ const ExpertFilter = ({ onFilterChange, getTranslation, currentLang, searchValue
   );
 };
 
+
+
 // Add dynamic imports handling for NextJS
 export default ExpertFilter;
