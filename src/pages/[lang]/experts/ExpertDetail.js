@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { translations } from '../../../locales/translations';
 import Footer from '../../../components/Footer';
 import HeaderBack from '../../../components/HeaderBack';
-import CollaborationModal from './CollaborationModal';
+import CollaborationModal from '../../../components/experts/CollaborationModal';
 import { EXPERTS_API } from '../../../utils/apiConfig';
 import {
   User,

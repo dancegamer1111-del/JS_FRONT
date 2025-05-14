@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
-import { EXPERTS_API, appendQueryParams } from '../../utils/apiConfig';
+import { EXPERTS_API, appendQueryParams } from '../../../utils/apiConfig';
 import {
   User,
   MapPin,
@@ -27,20 +27,30 @@ const ExpertsList = ({ filters, getTranslation, currentLang }) => {
   const [error, setError] = useState(null);
   const router = useRouter();
 
+  // Safe translation helper
+  const translate = (key, fallback) => {
+    return typeof getTranslation === 'function' ? getTranslation(key, fallback) : fallback;
+  };
+
   useEffect(() => {
+    // Skip running this effect during server-side rendering
+    if (typeof window === 'undefined') {
+      return;
+    }
+
     const fetchExperts = async () => {
       setLoading(true);
       setError(null);
       try {
         const params = {};
-        if (filters.specialization) params.specialization = filters.specialization;
-        if (filters.city) params.city = filters.city;
-        if (filters.search) params.search = filters.search;
+        if (filters?.specialization) params.specialization = filters.specialization;
+        if (filters?.city) params.city = filters.city;
+        if (filters?.search) params.search = filters.search;
 
         params.skip = '0';
         params.limit = '100';
 
-        const url = (filters.specialization || filters.city || filters.search)
+        const url = (filters?.specialization || filters?.city || filters?.search)
           ? appendQueryParams(EXPERTS_API.SEARCH, params)
           : appendQueryParams(EXPERTS_API.LIST, { skip: params.skip, limit: params.limit });
 
@@ -48,13 +58,13 @@ const ExpertsList = ({ filters, getTranslation, currentLang }) => {
 
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}));
-          throw new Error(errorData.detail || `${getTranslation('experts.errorPrefix', 'Ошибка запроса')}: ${response.status} ${response.statusText}`);
+          throw new Error(errorData.detail || `${translate('experts.errorPrefix', 'Ошибка запроса')}: ${response.status} ${response.statusText}`);
         }
 
         const data = await response.json();
         setExperts(data);
       } catch (err) {
-        console.error(getTranslation('experts.errorLog', 'Ошибка при загрузке экспертов:'), err);
+        console.error(translate('experts.errorLog', 'Ошибка при загрузке экспертов:'), err);
         setError(err.message);
       } finally {
         setLoading(false);
@@ -62,13 +72,13 @@ const ExpertsList = ({ filters, getTranslation, currentLang }) => {
     };
 
     fetchExperts();
-  }, [filters, getTranslation]);
+  }, [filters]); // Removed getTranslation from dependencies to avoid unnecessary refetches
 
   if (loading) {
     return (
       <div className="text-center py-12">
         <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-teal-500 mb-4"></div>
-        <p className="text-gray-600 font-medium mt-3">{getTranslation('experts.loading', 'Загрузка экспертов...')}</p>
+        <p className="text-gray-600 font-medium mt-3">{translate('experts.loading', 'Загрузка экспертов...')}</p>
       </div>
     );
   }
@@ -78,9 +88,9 @@ const ExpertsList = ({ filters, getTranslation, currentLang }) => {
       <div className="bg-red-50 border-l-4 border-red-400 text-red-700 p-6 rounded-xl shadow-md my-6" role="alert">
         <div className="flex items-center mb-2">
           <AlertTriangle size={20} className="mr-2" />
-          <p className="font-bold">{getTranslation('experts.errorLoadingTitle', 'Ошибка при загрузке')}</p>
+          <p className="font-bold">{translate('experts.errorLoadingTitle', 'Ошибка при загрузке')}</p>
         </div>
-        <p>{getTranslation('experts.errorLoadingMessage', 'Не удалось загрузить список экспертов:')} {error}</p>
+        <p>{translate('experts.errorLoadingMessage', 'Не удалось загрузить список экспертов:')} {error}</p>
       </div>
     );
   }
@@ -91,8 +101,8 @@ const ExpertsList = ({ filters, getTranslation, currentLang }) => {
         <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-yellow-100 text-yellow-500 mb-4">
           <Search size={28} />
         </div>
-        <h3 className="text-xl font-semibold text-gray-800 mb-2">{getTranslation('experts.noResultsTitle', 'Эксперты не найдены')}</h3>
-        <p className="text-gray-600 max-w-md mx-auto">{getTranslation('experts.noResultsMessage', 'По вашему запросу экспертов не найдено. Попробуйте изменить критерии поиска.')}</p>
+        <h3 className="text-xl font-semibold text-gray-800 mb-2">{translate('experts.noResultsTitle', 'Эксперты не найдены')}</h3>
+        <p className="text-gray-600 max-w-md mx-auto">{translate('experts.noResultsMessage', 'По вашему запросу экспертов не найдено. Попробуйте изменить критерии поиска.')}</p>
       </div>
     );
   }
@@ -110,7 +120,7 @@ const ExpertsList = ({ filters, getTranslation, currentLang }) => {
                 {expert.avatar_url ? (
                   <img
                     src={expert.avatar_url}
-                    alt={`${getTranslation('experts.avatarAltPrefix', 'Аватар эксперта')} ${expert.full_name}`}
+                    alt={`${translate('experts.avatarAltPrefix', 'Аватар эксперта')} ${expert.full_name}`}
                     className="h-full w-full object-cover"
                     onError={(e) => {
                         const parent = e.target.parentNode;
@@ -180,7 +190,7 @@ const ExpertsList = ({ filters, getTranslation, currentLang }) => {
                 href={`/${currentLang}/experts/${expert.id}`}
                 className="w-full block text-center bg-gradient-to-r from-teal-500 to-blue-600 hover:from-teal-600 hover:to-blue-700 text-white font-medium py-2.5 px-4 rounded-lg transition-colors duration-200 text-sm shadow-sm hover:shadow"
             >
-                {getTranslation('experts.viewProfileButton', 'Смотреть профиль')}
+                {translate('experts.viewProfileButton', 'Смотреть профиль')}
             </Link>
           </div>
         </div>
@@ -189,4 +199,5 @@ const ExpertsList = ({ filters, getTranslation, currentLang }) => {
   );
 };
 
+// Make component compatible with SSR and dynamic routes
 export default ExpertsList;

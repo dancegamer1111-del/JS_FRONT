@@ -29,27 +29,31 @@ const ExpertFilter = ({ onFilterChange, getTranslation, currentLang, searchValue
   }, []);
 
   // Обновление фильтра при изменении поля поиска в шапке
+  // Fixed: Add null check for onFilterChange and use client-side only execution
   useEffect(() => {
-    if (searchValue !== undefined) {
+    // Ensure this effect only runs on the client side, not during server rendering
+    if (typeof window !== 'undefined' && searchValue !== undefined && typeof onFilterChange === 'function') {
       onFilterChange({
         specialization,
         city,
         search: searchValue
       });
     }
-  }, [searchValue]);
+  }, [searchValue, specialization, city, onFilterChange]);
 
   // Обработчик отправки формы фильтрации
   const handleSubmit = (e) => {
     e.preventDefault();
-    onFilterChange({
-      specialization,
-      city,
-      search: searchValue || ''
-    });
+    if (typeof onFilterChange === 'function') {
+      onFilterChange({
+        specialization,
+        city,
+        search: searchValue || ''
+      });
+    }
 
     // На мобильных устройствах закрываем фильтр после применения
-    if (window.innerWidth < 768) {
+    if (typeof window !== 'undefined' && window.innerWidth < 768) {
       setIsExpanded(false);
     }
   };
@@ -58,17 +62,24 @@ const ExpertFilter = ({ onFilterChange, getTranslation, currentLang, searchValue
   const handleClear = () => {
     setSpecialization('');
     setCity('');
-    onFilterChange({
-      specialization: '',
-      city: '',
-      // Сохраняем поисковый запрос, если он есть
-      search: searchValue || ''
-    });
+    if (typeof onFilterChange === 'function') {
+      onFilterChange({
+        specialization: '',
+        city: '',
+        // Сохраняем поисковый запрос, если он есть
+        search: searchValue || ''
+      });
+    }
   };
 
   // Проверка, есть ли активные фильтры
   const hasActiveFilters = () => {
     return specialization || city;
+  };
+
+  // Handle safe translation with fallback
+  const translate = (key, fallback) => {
+    return typeof getTranslation === 'function' ? getTranslation(key, fallback) : fallback;
   };
 
   return (
@@ -77,7 +88,7 @@ const ExpertFilter = ({ onFilterChange, getTranslation, currentLang, searchValue
       <div className="px-4 py-3 md:hidden flex justify-between items-center border-b border-gray-100">
         <h2 className="text-sm font-medium text-gray-700 flex items-center">
           <Filter size={16} className="mr-2 text-teal-600" />
-          {getTranslation('experts.filter.title', 'Фильтры')}
+          {translate('experts.filter.title', 'Фильтры')}
           {hasActiveFilters() && (
             <span className="ml-2 bg-teal-100 text-teal-700 text-xs font-medium px-2 py-0.5 rounded-full">
               {(specialization ? 1 : 0) + (city ? 1 : 0)}
@@ -98,7 +109,7 @@ const ExpertFilter = ({ onFilterChange, getTranslation, currentLang, searchValue
           {/* Выбор специализации */}
           <div className="md:flex-1">
             <label htmlFor="specialization" className="block text-xs font-medium text-gray-500 mb-1">
-              {getTranslation('experts.filter.specialization', 'Специализация')}
+              {translate('experts.filter.specialization', 'Специализация')}
             </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -110,7 +121,7 @@ const ExpertFilter = ({ onFilterChange, getTranslation, currentLang, searchValue
                 value={specialization}
                 onChange={(e) => setSpecialization(e.target.value)}
               >
-                <option value="">{getTranslation('experts.filter.allSpecializations', 'Все специализации')}</option>
+                <option value="">{translate('experts.filter.allSpecializations', 'Все специализации')}</option>
                 {specializations.map((spec, index) => (
                   <option key={index} value={spec}>{spec}</option>
                 ))}
@@ -126,7 +137,7 @@ const ExpertFilter = ({ onFilterChange, getTranslation, currentLang, searchValue
           {/* Выбор города */}
           <div className="md:flex-1">
             <label htmlFor="city" className="block text-xs font-medium text-gray-500 mb-1">
-              {getTranslation('experts.filter.city', 'Город')}
+              {translate('experts.filter.city', 'Город')}
             </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -138,7 +149,7 @@ const ExpertFilter = ({ onFilterChange, getTranslation, currentLang, searchValue
                 value={city}
                 onChange={(e) => setCity(e.target.value)}
               >
-                <option value="">{getTranslation('experts.filter.allCities', 'Все города')}</option>
+                <option value="">{translate('experts.filter.allCities', 'Все города')}</option>
                 {cities.map((cityName, index) => (
                   <option key={index} value={cityName}>{cityName}</option>
                 ))}
@@ -159,14 +170,14 @@ const ExpertFilter = ({ onFilterChange, getTranslation, currentLang, searchValue
                 className="px-3 py-2 text-xs font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
               >
                 <X size={14} className="md:hidden mr-1 inline" />
-                {getTranslation('experts.filter.clear', 'Очистить')}
+                {translate('experts.filter.clear', 'Очистить')}
               </button>
             )}
             <button
               type="submit"
               className="px-4 py-2 text-xs font-medium text-white bg-teal-600 hover:bg-teal-700 rounded-lg transition-colors"
             >
-              {getTranslation('experts.filter.apply', 'Применить')}
+              {translate('experts.filter.apply', 'Применить')}
             </button>
           </div>
         </form>
@@ -182,7 +193,9 @@ const ExpertFilter = ({ onFilterChange, getTranslation, currentLang, searchValue
                   <button
                     onClick={() => {
                       setSpecialization('');
-                      onFilterChange({ ...{ search: searchValue || '', city }, specialization: '' });
+                      if (typeof onFilterChange === 'function') {
+                        onFilterChange({ ...{ search: searchValue || '', city }, specialization: '' });
+                      }
                     }}
                     className="ml-1 text-blue-500 hover:text-blue-700"
                   >
@@ -197,7 +210,9 @@ const ExpertFilter = ({ onFilterChange, getTranslation, currentLang, searchValue
                   <button
                     onClick={() => {
                       setCity('');
-                      onFilterChange({ ...{ search: searchValue || '', specialization }, city: '' });
+                      if (typeof onFilterChange === 'function') {
+                        onFilterChange({ ...{ search: searchValue || '', specialization }, city: '' });
+                      }
                     }}
                     className="ml-1 text-indigo-500 hover:text-indigo-700"
                   >
@@ -213,4 +228,5 @@ const ExpertFilter = ({ onFilterChange, getTranslation, currentLang, searchValue
   );
 };
 
+// Add dynamic imports handling for NextJS
 export default ExpertFilter;
