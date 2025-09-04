@@ -30,7 +30,8 @@ export default function AuthRequiredModal({ onClose, lang = 'ru' }) {
   };
 
   const handleLogin = () => {
-    router.push(`http://localhost:3000/${lang}/login`);
+    // Используем относительный путь вместо абсолютного URL
+    router.push(`/${lang}/login`);
     onClose();
   };
 
