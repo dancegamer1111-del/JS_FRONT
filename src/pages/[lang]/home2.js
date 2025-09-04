@@ -351,47 +351,45 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Яркая секция услуг */}
-      <section className="py-20 bg-gradient-to-br from-gray-50 via-purple-50 to-pink-50">
+      {/* Компактная секция услуг */}
+      <section className="py-16 bg-gray-50">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold mb-6 gradient-text tilda-font">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold mb-4 text-gray-800 tilda-font">
               {currentContent.services.title}
             </h2>
-            <p className="text-lg text-gray-600 max-w-3xl mx-auto tilda-font">
+            <p className="text-gray-600 max-w-2xl mx-auto tilda-font">
               {currentContent.services.subtitle}
             </p>
           </div>
 
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {serviceCards.map((card, index) => (
               <div
                 key={index}
-                className={`rounded-3xl p-8 transition-all duration-300 card-hover border border-white/50 ${card.color} group cursor-pointer shadow-lg hover:shadow-2xl`}
+                className={`rounded-xl p-6 transition-all duration-200 card-hover border border-gray-200 ${card.color} group cursor-pointer`}
                 onClick={card.onClick}
               >
-                <div className="mb-6 transform group-hover:scale-110 transition-transform duration-300">
-                  <div className="w-16 h-16 bg-white/30 rounded-2xl flex items-center justify-center backdrop-blur-sm">
-                    {card.icon}
-                  </div>
+                <div className="mb-4">
+                  {card.icon}
                 </div>
-                <h3 className="text-xl font-bold mb-4 text-gray-800 tilda-font">
+                <h3 className="text-lg font-semibold mb-3 text-gray-800 tilda-font">
                   {card.title}
                 </h3>
-                <p className="text-gray-700 mb-6 leading-relaxed tilda-font">
+                <p className="text-gray-600 mb-4 text-sm leading-relaxed tilda-font">
                   {card.description}
                 </p>
                 {card.link ? (
                   <Link href={card.link} legacyBehavior>
-                    <a className={`inline-flex items-center font-semibold rounded-xl px-6 py-3 transition-all duration-300 border-2 border-current ${card.buttonColor} tilda-font group-hover:shadow-lg`}>
+                    <a className={`inline-flex items-center text-sm font-medium rounded-lg px-4 py-2 transition-all duration-200 border border-current ${card.buttonColor} tilda-font`}>
                       {currentLang === 'kz' ? 'Толығырақ' : 'Подробнее'}
-                      <ChevronRight size={16} className="ml-2 transform group-hover:translate-x-1 transition-transform duration-300" />
+                      <ChevronRight size={16} className="ml-2" />
                     </a>
                   </Link>
                 ) : (
-                  <button className={`inline-flex items-center font-semibold rounded-xl px-6 py-3 transition-all duration-300 border-2 border-current ${card.buttonColor} tilda-font group-hover:shadow-lg`}>
+                  <button className={`inline-flex items-center text-sm font-medium rounded-lg px-4 py-2 transition-all duration-200 border border-current ${card.buttonColor} tilda-font`}>
                     {currentLang === 'kz' ? 'Толығырақ' : 'Подробнее'}
-                    <ChevronRight size={16} className="ml-2 transform group-hover:translate-x-1 transition-transform duration-300" />
+                    <ChevronRight size={16} className="ml-2" />
                   </button>
                 )}
               </div>

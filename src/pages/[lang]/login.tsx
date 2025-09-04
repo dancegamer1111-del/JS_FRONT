@@ -2,96 +2,63 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
-import { GetServerSideProps } from 'next';
 
-// Define the translations interface
-interface Translations {
-  title: string;
-  subtitle: string;
-  phoneLabel: string;
-  phoneHelper: string;
-  loginButton: string;
-  loadingText: string;
-  errorEmptyPhone: string;
-  errorInvalidPhone: string;
-  errorWrongNumber: string;
-  errorGeneric: string;
-}
-
-interface LoginProps {
-  translations: Translations;
-}
-
-// This function will run on the server for each request
-export const getServerSideProps: GetServerSideProps = async ({ params }) => {
-  // Get the language from the URL
-  const lang = params?.lang || 'kz'; // Default to Kazakh if not specified
-
-  // In a real app, you would load translations from a file or API
-  // Here we're just hardcoding Kazakh and Russian translations
-  const translations = {
-    kz: {
-      title: 'TABYS',
-      subtitle: 'Сайтқа кіру үшін нөміріңізді енгізіңіз',
-      phoneLabel: 'WhatsApp нөміріңіз:',
-      phoneHelper: 'Маңызды: Өзіңіздің WhatsApp нөміріңізді көрсетіңіз, өйткені барлық материалдар сол нөмірге жіберіледі.',
-      loginButton: 'Кіру',
-      loadingText: 'Кіру...',
-      errorEmptyPhone: 'Номер телефоныңызды енгізіңіз.',
-      errorInvalidPhone: 'Нөмір дұрыс емес.',
-      errorWrongNumber: 'Нөмір қате.',
-      errorGeneric: 'Кіру кезінде қате.'
-    },
-    ru: {
-      title: 'TABYS',
-      subtitle: 'Введите ваш номер для входа на сайт',
-      phoneLabel: 'Ваш WhatsApp номер:',
-      phoneHelper: 'Важно: Укажите ваш WhatsApp номер, так как все материалы будут отправлены на этот номер.',
-      loginButton: 'Войти',
-      loadingText: 'Вход...',
-      errorEmptyPhone: 'Введите номер телефона.',
-      errorInvalidPhone: 'Неверный номер.',
-      errorWrongNumber: 'Неверный номер.',
-      errorGeneric: 'Ошибка при входе.'
-    },
-    en: {
-      title: 'TABYS',
-      subtitle: 'Enter your phone number to access the site',
-      phoneLabel: 'Your WhatsApp number:',
-      phoneHelper: 'Important: Provide your WhatsApp number as all materials will be sent to this number.',
-      loginButton: 'Log in',
-      loadingText: 'Logging in...',
-      errorEmptyPhone: 'Please enter your phone number.',
-      errorInvalidPhone: 'Invalid number.',
-      errorWrongNumber: 'Wrong number.',
-      errorGeneric: 'Login error.'
-    }
-  };
-
-  // Validate lang parameter
-  const validLang = (lang as string) in translations ? (lang as string) : 'kz';
-
-  // Return the props for the component
-  return {
-    props: {
-      translations: translations[validLang as keyof typeof translations]
-    }
-  };
+const translations = {
+  kz: {
+    title: '',
+    phoneStepTitle: 'WhatsApp нөміріңізді енгізіңіз',
+    phoneStepSubtitle: 'Біз сізге растау кодын жібереміз',
+    phoneLabel: 'WhatsApp нөміріңіз:',
+    sendCodeButton: 'Код жіберу',
+    otpStepTitle: 'Растау кодын енгізіңіз',
+    otpStepSubtitle: 'WhatsApp арқылы келген кодты енгізіңіз',
+    otpLabel: 'Растау коды:',
+    verifyButton: 'Растау',
+    loadingText: 'Күте тұрыңыз...',
+    registerOrgButton: 'Ұйымды тіркеу',
+    changePhoneButton: 'Нөмірді өзгерту',
+    smsPlaceholder: 'SMS кодын енгізіңіз'
+  },
+  ru: {
+    title: '',
+    phoneStepTitle: 'Введите ваш WhatsApp номер',
+    phoneStepSubtitle: 'Мы отправим вам код верификации',
+    phoneLabel: 'Ваш WhatsApp номер:',
+    sendCodeButton: 'Отправить код',
+    otpStepTitle: 'Введите код верификации',
+    otpStepSubtitle: 'Введите код, полученный в WhatsApp',
+    otpLabel: 'Код верификации:',
+    verifyButton: 'Подтвердить',
+    loadingText: 'Подождите...',
+    registerOrgButton: 'Регистрация организации',
+    changePhoneButton: 'Изменить номер',
+    smsPlaceholder: 'Введите SMS код'
+  }
 };
 
-const Login: React.FC<LoginProps> = ({ translations }) => {
-  const [phone, setPhone] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+const Login = () => {
   const router = useRouter();
   const { lang } = router.query;
+  const currentLang = lang && ['kz', 'ru'].includes(lang) ? lang : 'kz';
+  const t = translations[currentLang] || translations.kz;
 
-  // Function to format the phone number
-  const formatPhoneNumber = (value: string) => {
-    // Remove all non-digit characters
+  const [step, setStep] = useState('phone'); // 'phone', 'otp'
+  const [phone, setPhone] = useState('');
+  const [otpCode, setOtpCode] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    // Проверяем параметры URL для обратной связи после регистрации
+    const { registered } = router.query;
+    if (registered === 'true') {
+      setStep('otp');
+      // Можно показать сообщение об успешной регистрации
+    }
+  }, [router.query]);
+
+  const formatPhoneNumber = (value) => {
     const phoneNumber = value.replace(/\D/g, '');
-
-    // Format the phone number
     if (phoneNumber.length === 0) return '';
     if (phoneNumber.length <= 1) return `+${phoneNumber}`;
     if (phoneNumber.length <= 4) return `+${phoneNumber.slice(0, 1)} (${phoneNumber.slice(1)}`;
@@ -100,254 +67,281 @@ const Login: React.FC<LoginProps> = ({ translations }) => {
     return `+${phoneNumber.slice(0, 1)} (${phoneNumber.slice(1, 4)}) ${phoneNumber.slice(4, 7)}-${phoneNumber.slice(7, 9)}-${phoneNumber.slice(9, 11)}`;
   };
 
-  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePhoneChange = (e) => {
     const formattedPhone = formatPhoneNumber(e.target.value);
     setPhone(formattedPhone);
   };
 
-  const handleLogin = async () => {
+  const sendVerificationCode = async () => {
     setLoading(true);
     setError(null);
 
     if (!phone) {
-      setError(translations.errorEmptyPhone);
+      setError('Введите номер телефона');
       setLoading(false);
       return;
     }
 
-    // Проверка номера телефона
     const digitsOnly = phone.replace(/\D/g, '');
+
     if (digitsOnly.length < 11) {
-      setError(translations.errorInvalidPhone);
+      setError('Неверный формат номера телефона');
       setLoading(false);
       return;
     }
 
     try {
-      const response = await axios.post(process.env.NEXT_PUBLIC_API_URL + '/api/v2/auth/login', {
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/v2/auth/send-otp`, {
         phone_number: digitsOnly,
       });
 
-      const token = response.data?.data?.token;
+      // В любом случае переходим к вводу OTP (код будет отправлен)
+      setStep('otp');
+      setError(null);
+
+    } catch (err) {
+      setError(err.response?.data?.detail || 'Ошибка при отправке кода');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const verifyCode = async () => {
+    setLoading(true);
+    setError(null);
+
+    if (!otpCode) {
+      setError('Введите код верификации');
+      setLoading(false);
+      return;
+    }
+
+    const digitsOnly = phone.replace(/\D/g, '');
+
+    try {
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/v2/auth/verify-otp`, {
+        phone_number: digitsOnly,
+        code: otpCode
+      });
+
+      const token = response.data?.access_token;
       if (token) {
-        // Сохраняем токен и номер телефона в localStorage
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('token', token);
-          localStorage.setItem('phoneNumber', digitsOnly);
+        localStorage.setItem('token', token);
+        localStorage.setItem('phoneNumber', digitsOnly);
+
+        // Пользователь найден - перенаправляем в home
+        const { callbackUrl } = router.query;
+        if (callbackUrl) {
+          router.push(callbackUrl);
+        } else {
+          router.push(`/${currentLang}/home`);
         }
       }
-
-      // Получаем параметр callbackUrl из URL, если он есть
-      const { callbackUrl } = router.query;
-
-      // Если есть callbackUrl, перенаправляем туда
-      if (callbackUrl && typeof callbackUrl === 'string') {
-        router.push(callbackUrl);
+    } catch (err) {
+      if (err.response?.status === 404) {
+        // Пользователь не найден - перенаправляем на регистрацию физлица
+        router.push(`/${currentLang}/register-individual?phone=${phone}`);
       } else {
-        // Иначе перенаправляем на домашнюю страницу
-        router.push(`/${lang}/home`);
-      }
-    } catch (err: any) {
-      console.error('Login error:', err);
-      if (err.response?.status === 403 || err.response?.status === 401) {
-        setError(translations.errorWrongNumber);
-      } else {
-        const detail = err.response?.data?.detail;
-        setError(detail || translations.errorGeneric);
+        setError(err.response?.data?.detail || 'Неверный код верификации');
       }
     } finally {
       setLoading(false);
     }
   };
 
-  // Функция для навигации по клавише Enter
-  const handleKeyPress = (e: React.KeyboardEvent) => {
+  const handleKeyPress = (e) => {
     if (e.key === 'Enter') {
-      handleLogin();
+      if (step === 'phone') sendVerificationCode();
+      if (step === 'otp') verifyCode();
     }
   };
 
-  // Simple dynamic icon components
+  // Icons
   const PhoneIcon = () => (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="18"
-      height="18"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500"
-    >
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-600">
       <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
     </svg>
   );
 
+  const MessageIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-600">
+      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+    </svg>
+  );
+
   const AlertIcon = () => (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="18"
-      height="18"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className="flex-shrink-0 mr-2 text-red-500"
-    >
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0 mr-2 text-red-500">
       <circle cx="12" cy="12" r="10"></circle>
       <line x1="12" y1="8" x2="12" y2="12"></line>
       <line x1="12" y1="16" x2="12.01" y2="16"></line>
     </svg>
   );
 
-  // Add keyframe animation for spinner
-  useEffect(() => {
-    const style = document.createElement('style');
-    style.innerHTML = `
-      @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-      }
-    `;
-    document.head.appendChild(style);
-
-    return () => {
-      document.head.removeChild(style);
-    };
-  }, []);
-
-  // Языковой переключатель
-  const languageSwitcher = () => {
-    const currentLang = typeof lang === 'string' ? lang : 'kz';
-    const languages = [
-      { code: 'kz', name: 'Қазақша' },
-      { code: 'ru', name: 'Русский' },
-      { code: 'en', name: 'English' }
-    ];
-
-    return (
-      <div className="absolute top-6 right-6 flex space-x-4">
-        {languages.map((l) => (
-          <a
-            key={l.code}
-            href={`/${l.code}/login`}
-            className={`text-sm font-medium ${
-              currentLang === l.code
-                ? 'text-teal-600 underline'
-                : 'text-gray-600 hover:text-teal-600'
-            }`}
-          >
-            {l.name}
-          </a>
-        ))}
-      </div>
-    );
-  };
+  const BuildingIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+      <path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/>
+      <path d="M6 12h12"/>
+      <path d="M6 8h12"/>
+      <path d="M6 16h12"/>
+    </svg>
+  );
 
   return (
     <>
       <Head>
-        <title>{translations.title} - {translations.loginButton}</title>
-        <meta name="description" content={translations.subtitle} />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>{t.title} - Авторизация</title>
+        <meta name="description" content="Авторизация на платформе SARYARQA JASTARY" />
       </Head>
 
-      <div className="min-h-screen flex flex-col bg-gradient-to-b from-gray-50 to-gray-100">
-        {/* Языковой переключатель         {languageSwitcher()}
-*/}
+      <style jsx global>{`
+        @font-face {
+          font-family: 'TildaSans';
+          src: url('/fonts/tilda/TildaSans-Regular.ttf') format('truetype');
+          font-weight: 400;
+          font-style: normal;
+        }
+        @font-face {
+          font-family: 'TildaSans';
+          src: url('/fonts/tilda/TildaSans-Medium.ttf') format('truetype');
+          font-weight: 500;
+          font-style: normal;
+        }
+        @font-face {
+          font-family: 'TildaSans';
+          src: url('/fonts/tilda/TildaSans-Semibold.ttf') format('truetype');
+          font-weight: 600;
+          font-style: normal;
+        }
+        .tilda-font {
+          font-family: 'TildaSans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+      `}</style>
 
-        <div className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8 py-12">
-          <div className="max-w-md w-full bg-white rounded-2xl shadow-xl overflow-hidden">
-            {/* Верхняя часть с градиентом */}
-            <div className="bg-gradient-to-r from-teal-500 to-blue-600 p-6 sm:p-10">
-              <div className="text-center">
-                <h1 className="text-3xl font-bold text-white">{translations.title}</h1>
-                <p className="mt-2 text-teal-100">{translations.subtitle}</p>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 py-6">
+        <div className="max-w-sm w-full">
+
+          {/* Компактный логотип */}
+          <div className="text-center mb-4">
+            <h1 className="text-2xl font-bold text-gray-900 tilda-font">{t.title}</h1>
+          </div>
+
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+
+            {/* Компактный заголовок */}
+            <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-4 text-center">
+              <div className="flex items-center justify-center mb-2">
+                {step === 'phone' ? <PhoneIcon /> : <MessageIcon />}
               </div>
+              <h2 className="text-base font-semibold text-white mb-1 tilda-font">
+                {step === 'phone' ? t.phoneStepTitle : t.otpStepTitle}
+              </h2>
+              <p className="text-blue-100 text-sm tilda-font">
+                {step === 'phone' ? t.phoneStepSubtitle : t.otpStepSubtitle}
+              </p>
             </div>
 
-            {/* Форма логина */}
-            <div className="p-6 sm:p-10">
+            <div className="p-4">
+              {/* Error message */}
               {error && (
-                <div className="mb-6 flex items-center p-4 rounded-lg bg-red-50 border border-red-100 text-red-700">
+                <div className="mb-3 flex items-center p-2.5 rounded-lg bg-red-50 border border-red-100 text-red-700 text-sm">
                   <AlertIcon />
-                  <span>{error}</span>
+                  <span className="tilda-font">{error}</span>
                 </div>
               )}
 
-              <div className="mb-6">
-                <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
-                  {translations.phoneLabel}
-                </label>
-                <div className="relative">
-                  <PhoneIcon />
-                  <input
-                    type="tel"
-                    id="phone"
-                    value={phone}
-                    onChange={handlePhoneChange}
-                    onKeyPress={handleKeyPress}
-                    placeholder="+7 (___) ___-__-__"
-                    className={`w-full pl-12 pr-4 py-3 border ${
-                      error ? 'border-red-300 focus:ring-red-500' : 'border-gray-300 focus:ring-teal-500'
-                    } rounded-lg shadow-sm focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-opacity-20 transition-colors`}
-                  />
-                </div>
-                <p className="mt-2 text-sm text-gray-500">
-                  {translations.phoneHelper}
-                </p>
-              </div>
+              {/* Phone Step */}
+              {step === 'phone' && (
+                <>
+                  <div className="mb-3">
+                    <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2 tilda-font">
+                      {t.phoneLabel}
+                    </label>
+                    <input
+                      type="tel"
+                      id="phone"
+                      value={phone}
+                      onChange={handlePhoneChange}
+                      onKeyPress={handleKeyPress}
+                      placeholder="+7 (___) ___-__-__"
+                      className="w-full px-3 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-colors tilda-font"
+                    />
+                  </div>
 
-              <button
-                onClick={handleLogin}
-                disabled={loading}
-                className={`w-full flex justify-center items-center rounded-lg px-5 py-3 font-medium text-white transition-all ${
-                  loading
-                    ? 'bg-teal-400 cursor-not-allowed'
-                    : 'bg-teal-600 hover:bg-teal-700 hover:shadow-lg transform hover:-translate-y-0.5'
-                }`}
-              >
-                {loading ? (
-                  <>
-                    <svg
-                      className="animate-spin -ml-1 mr-2 h-5 w-5 text-white"
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
+                  <button
+                    onClick={sendVerificationCode}
+                    disabled={loading}
+                    className={`w-full flex justify-center items-center rounded-lg px-4 py-2.5 font-medium text-white transition-all tilda-font ${
+                      loading
+                        ? 'bg-gray-400 cursor-not-allowed'
+                        : 'bg-blue-600 hover:bg-blue-700 hover:shadow-sm'
+                    }`}
+                  >
+                    {loading ? t.loadingText : t.sendCodeButton}
+                  </button>
+
+                  {/* Organization Registration Link */}
+                  <div className="mt-4 pt-3 border-t border-gray-200">
+                    <button
+                      onClick={() => router.push(`/${currentLang}/register-organization`)}
+                      className="w-full flex items-center justify-center p-2.5 border border-blue-200 rounded-lg text-blue-700 hover:bg-blue-50 hover:border-blue-300 transition-colors text-sm tilda-font"
                     >
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                      ></circle>
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                      ></path>
-                    </svg>
-                    {translations.loadingText}
-                  </>
-                ) : (
-                  translations.loginButton
-                )}
-              </button>
+                      <BuildingIcon />
+                      {t.registerOrgButton}
+                    </button>
+                  </div>
+                </>
+              )}
+
+              {/* OTP Step */}
+              {step === 'otp' && (
+                <>
+                  <div className="mb-3">
+                    <label htmlFor="otp" className="block text-sm font-medium text-gray-700 mb-2 tilda-font">
+                      {t.otpLabel}
+                    </label>
+                    <input
+                      type="text"
+                      id="otp"
+                      value={otpCode}
+                      onChange={(e) => setOtpCode(e.target.value)}
+                      onKeyPress={handleKeyPress}
+                      placeholder={t.smsPlaceholder}
+                      maxLength="6"
+                      className="w-full px-3 py-2.5 text-lg text-center tracking-widest border border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-colors tilda-font"
+                    />
+                    <p className="mt-2 text-xs text-gray-500 text-center tilda-font">
+                      Отправлено на: {formatPhoneNumber(phone)}
+                    </p>
+                  </div>
+
+                  <button
+                    onClick={verifyCode}
+                    disabled={loading}
+                    className={`w-full flex justify-center items-center rounded-lg px-4 py-2.5 font-medium text-white transition-all tilda-font ${
+                      loading
+                        ? 'bg-gray-400 cursor-not-allowed'
+                        : 'bg-blue-600 hover:bg-blue-700 hover:shadow-sm'
+                    }`}
+                  >
+                    {loading ? t.loadingText : t.verifyButton}
+                  </button>
+
+                  <button
+                    onClick={() => setStep('phone')}
+                    className="w-full mt-3 text-sm text-gray-600 hover:text-blue-600 tilda-font"
+                    disabled={loading}
+                  >
+                    {t.changePhoneButton}
+                  </button>
+                </>
+              )}
             </div>
           </div>
-        </div>
 
-        {/* Волнообразный декоративный элемент внизу */}
-        <div className="bg-gradient-to-r from-teal-500 to-blue-600 h-16">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none" className="text-gray-100 w-full h-16">
-            <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z" fill="currentColor" transform="rotate(180 600 60)"></path>
-          </svg>
+          {/* Компактный футер */}
+          <div className="mt-4 text-center">
+            <div className="h-1 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full mx-auto w-12"></div>
+          </div>
         </div>
       </div>
     </>

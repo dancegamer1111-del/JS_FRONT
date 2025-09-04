@@ -5,6 +5,10 @@ export const translations = {
 
     navigation: {
       home: "Басты бет",
+      projects:"Жобалар",
+      vacancies:"Вакансиялар",
+      news:"Жаңалықтар",
+      events:"Күнтізбе",
       experts: "Эксперты",
       transactions: "Транзакциялар",
       text2speech: "Дыбыстау",
@@ -12,6 +16,7 @@ export const translations = {
       about: "Біз туралы",
       history: "Менің шақыруларым",
       balance: "Баланс",
+      courses:"Курстар",
       topUp: "Толтыру"
     },
      invitation: {

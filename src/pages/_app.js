@@ -12,6 +12,8 @@ export default function App({ Component, pageProps }) {
     path.startsWith("/kz/home") ||
     path.startsWith("/kz/experts/all") ||
     path.startsWith("/kz/vacancies") ||
+    path.startsWith("/kz/projects") ||
+    path.startsWith("/ru/projects") ||
     path.startsWith("/kz/certificates") ||
     path.startsWith("/kz/events") ||
     path.startsWith("/kz/courses") ||

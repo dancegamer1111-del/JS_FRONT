@@ -26,6 +26,7 @@ export const VACANCIES_API = {
 };
 
 
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:8000';
 
 // Эндпоинты API для мероприятий
 export const EVENTS_API = {
@@ -39,6 +40,28 @@ export const EVENTS_API = {
   PARTICIPANTS: (id) => `${process.env.NEXT_PUBLIC_API_URL}/api/v2/events/${id}/participants`,
 
 };
+
+
+
+
+
+// Новая конфигурация для проектов
+export const PROJECTS_API = {
+  BASE: `${API_BASE}/api/v2/projects`,
+  LIST: `${API_BASE}/api/v2/projects/`,
+  DETAILS: (id) => `${API_BASE}/api/v2/projects/${id}`,
+  VOTE: (id) => `${API_BASE}/api/v2/projects/${id}/vote`,
+  APPLY: (id) => `${API_BASE}/api/v2/projects/${id}/applications`,
+  STATS: (id) => `${API_BASE}/api/v2/projects/${id}/stats`,
+  ACTIVE_VOTING: `${API_BASE}/api/v2/projects/active/voting`,
+  ACTIVE_APPLICATIONS: `${API_BASE}/api/v2/projects/active/applications`,
+  MY_VOTES: `${API_BASE}/api/v2/projects/my-votes`,
+  MY_APPLICATIONS: `${API_BASE}/api/v2/projects/my-applications`,
+  UPLOAD_PHOTO: (id) => `${API_BASE}/api/v2/projects/${id}/upload-photo`,
+  UPLOAD_GALLERY: (id) => `${API_BASE}/api/v2/projects/${id}/upload-gallery`
+};
+
+
 
 // Функция для добавления параметров запроса
 export const appendQueryParams = (url, params) => {

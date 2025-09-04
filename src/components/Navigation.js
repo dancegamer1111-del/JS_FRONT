@@ -1,3 +1,4 @@
+// Navigation.js
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
@@ -15,7 +16,8 @@ import {
   LogIn,
 } from 'react-feather';
 
-// Импортируем переводы из локалей
+// Импортируем модальное окно и переводы
+import Modal from './Modal';
 import { translations } from '../locales/translations';
 
 // Список языков
@@ -27,24 +29,19 @@ const languages = [
 
 const Navigation = () => {
   const router = useRouter();
-  // Получаем lang из query
   const { lang } = router.query;
-  // Текущий путь: /[lang]/about, /[lang]/home и т.п.
   const pathname = router.pathname;
 
-  // Состояние авторизации
   const [isAuthorized, setIsAuthorized] = useState(false);
-
-  // Инициализируем язык
   const [currentLang, setCurrentLang] = useState(
-    typeof lang === 'string' && ['kz', 'ru', 'en'].includes(lang)
-      ? lang
-      : 'kz'
+    typeof lang === 'string' && ['kz', 'ru', 'en'].includes(lang) ? lang : 'kz'
   );
-  // Инициализируем переводы
   const [t, setT] = useState(translations[currentLang] || {});
 
-  // Проверка авторизации при загрузке
+  // Состояние для модального окна
+  const [showModal, setShowModal] = useState(false);
+  const [modalMessage, setModalMessage] = useState('');
+
   useEffect(() => {
     const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
     setIsAuthorized(!!token);
@@ -61,103 +58,65 @@ const Navigation = () => {
     }
   }, [lang, currentLang]);
 
-  // Префикс для ссылок вида /kz/home, /ru/home и т.п.
   const langPrefix = `/${currentLang}`;
 
-  // Навигационные пункты с обновленными иконками
   const navItems = [
-    {
-      path: `${langPrefix}/home`,
-      label: t.navigation?.home || 'Главная',
-      icon: <Home size={18} className="mr-2" />,
-      requiresAuth: false,
-    },
-    {
-      path: `${langPrefix}/experts/all`,
-      label: t.navigation?.experts || 'Эксперты',
-      icon: <Users size={18} className="mr-2" />,
-      requiresAuth: false,
-    },
-    {
-      path: `${langPrefix}/vacancies`,
-      label: t.navigation?.vacancies || 'Вакансии',
-      icon: <Briefcase size={18} className="mr-2" />,
-      requiresAuth: false,
-    },
-    {
-      path: `${langPrefix}/events`,
-      label: t.navigation?.events || 'События',
-      icon: <HelpCircle size={18} className="mr-2" />,
-      requiresAuth: false,
-    },
-    {
-      path: `${langPrefix}/certificates`,
-      label: t.navigation?.certificates || 'Сертификация',
-      icon: <Award size={18} className="mr-2" />,
-      requiresAuth: true, // Требует авторизации
-    },
-    {
-      path: `${langPrefix}/courses`,
-      label: t.navigation?.courses || 'Электронные курсы',
-      icon: <Monitor size={18} className="mr-2" />,
-      requiresAuth: true, // Требует авторизации
-    },
+    { path: `${langPrefix}/home`, label: t.navigation?.home || 'Главная', icon: <Home size={18} className="mr-2" />, isComingSoon: false },
+    { path: `${langPrefix}/projects`, label: t.navigation?.projects || 'Проекты', icon: <Users size={18} className="mr-2" />, isComingSoon: false },
+    { path: `${langPrefix}/vacancies`, label: t.navigation?.vacancies || 'Вакансии', icon: <Briefcase size={18} className="mr-2" />, isComingSoon: true },
+    { path: `${langPrefix}/news`, label: t.navigation?.news || 'Новости', icon: <HelpCircle size={18} className="mr-2" />, isComingSoon: true },
+    { path: `${langPrefix}/events`, label: t.navigation?.events || 'Календарь событий', icon: <Award size={18} className="mr-2" />, requiresAuth: true, isComingSoon: true },
+    { path: `${langPrefix}/courses`, label: t.navigation?.courses || 'Курсы', icon: <Monitor size={18} className="mr-2" />, requiresAuth: true, isComingSoon: true },
   ];
 
-  // Состояния для раскрытия/закрытия меню
   const [isOpen, setIsOpen] = useState(false);
   const [isLangOpen, setIsLangOpen] = useState(false);
   const [isMobileLangOpen, setIsMobileLangOpen] = useState(false);
 
-  // Обработчик перехода на страницу логина
+  // Обработчик для заглушки
+  const handlePlaceholderClick = (e) => {
+    e.preventDefault();
+    setModalMessage(t.navigation?.comingSoon || 'Раздел в разработке.');
+    setShowModal(true);
+  };
+
+  // Обработчик закрытия модального окна
+  const closeModal = () => {
+    setShowModal(false);
+    setModalMessage('');
+  };
+
   const handleLogin = () => {
     router.push(`${langPrefix}/login?returnUrl=${encodeURIComponent(router.asPath)}`);
   };
 
-  // Обработчик навигации для пунктов меню, требующих авторизации
+  // Обновленный обработчик навигации
   const handleNavigationClick = (item, e) => {
-    if (item.requiresAuth && !isAuthorized) {
+    if (item.isComingSoon) {
+      handlePlaceholderClick(e);
+    } else if (item.requiresAuth && !isAuthorized) {
       e.preventDefault();
-      // Перенаправляем на страницу логина с returnUrl для возврата после авторизации
       router.push(`${langPrefix}/login?returnUrl=${encodeURIComponent(item.path)}`);
     } else {
-      // Если пользователь авторизован или пункт не требует авторизации,
-      // просто переходим по указанному пути
       router.push(item.path);
     }
   };
 
-  // Закрытие при клике вне меню
   useEffect(() => {
     const handleClickOutside = (event) => {
       const mobileMenu = document.getElementById('mobile-menu');
       const hamburgerButton = document.getElementById('hamburger-button');
-      if (
-        mobileMenu &&
-        hamburgerButton &&
-        !mobileMenu.contains(event.target) &&
-        !hamburgerButton.contains(event.target)
-      ) {
+      if (mobileMenu && hamburgerButton && !mobileMenu.contains(event.target) && !hamburgerButton.contains(event.target)) {
         setIsOpen(false);
       }
       const langDropdown = document.getElementById('lang-dropdown');
       const langButton = document.getElementById('lang-button');
-      if (
-        langDropdown &&
-        langButton &&
-        !langDropdown.contains(event.target) &&
-        !langButton.contains(event.target)
-      ) {
+      if (langDropdown && langButton && !langDropdown.contains(event.target) && !langButton.contains(event.target)) {
         setIsLangOpen(false);
       }
       const mobileLangDropdown = document.getElementById('mobile-lang-dropdown');
       const mobileLangButton = document.getElementById('mobile-lang-button');
-      if (
-        mobileLangDropdown &&
-        mobileLangButton &&
-        !mobileLangDropdown.contains(event.target) &&
-        !mobileLangButton.contains(event.target)
-      ) {
+      if (mobileLangDropdown && mobileLangButton && !mobileLangDropdown.contains(event.target) && !mobileLangButton.contains(event.target)) {
         setIsMobileLangOpen(false);
       }
     };
@@ -166,6 +125,7 @@ const Navigation = () => {
       setIsOpen(false);
       setIsLangOpen(false);
       setIsMobileLangOpen(false);
+      closeModal();
     };
 
     document.addEventListener('mousedown', handleClickOutside);
@@ -177,10 +137,8 @@ const Navigation = () => {
     };
   }, [router.events, isOpen, isLangOpen, isMobileLangOpen]);
 
-  // Проверка активного пункта меню
   const isActive = (path) => pathname === path;
 
-  // Логика переключения языка (десктоп)
   const toggleLangDropdown = () => setIsLangOpen(!isLangOpen);
   const handleLanguageChange = (langCode) => {
     setIsLangOpen(false);
@@ -194,7 +152,6 @@ const Navigation = () => {
     }
   };
 
-  // Логика переключения языка (мобильная версия)
   const toggleMobileLangDropdown = () => setIsMobileLangOpen(!isMobileLangOpen);
   const handleMobileLanguageChange = (langCode) => {
     setIsMobileLangOpen(false);
@@ -210,104 +167,156 @@ const Navigation = () => {
 
   return (
     <>
+      {/* Стили для шрифтов */}
+      <style jsx global>{`
+        @font-face {
+          font-family: 'TildaSans';
+          src: url('/fonts/tilda/TildaSans-Regular.ttf') format('truetype');
+          font-weight: 400;
+          font-style: normal;
+        }
+        @font-face {
+          font-family: 'TildaSans';
+          src: url('/fonts/tilda/TildaSans-Medium.ttf') format('truetype');
+          font-weight: 500;
+          font-style: normal;
+        }
+        @font-face {
+          font-family: 'TildaSans';
+          src: url('/fonts/tilda/TildaSans-Semibold.ttf') format('truetype');
+          font-weight: 600;
+          font-style: normal;
+        }
+        @font-face {
+          font-family: 'TildaSans';
+          src: url('/fonts/tilda/TildaSans-Bold.ttf') format('truetype');
+          font-weight: 700;
+          font-style: normal;
+        }
+        @font-face {
+          font-family: 'TildaSans';
+          src: url('/fonts/tilda/TildaSans-ExtraBold.ttf') format('truetype');
+          font-weight: 800;
+          font-style: normal;
+        }
+        @font-face {
+          font-family: 'TildaSans';
+          src: url('/fonts/tilda/TildaSans-Black.ttf') format('truetype');
+          font-weight: 900;
+          font-style: normal;
+        }
+        @font-face {
+          font-family: 'TildaSans';
+          src: url('/fonts/tilda/TildaSans-Light.ttf') format('truetype');
+          font-weight: 300;
+          font-style: normal;
+        }
+
+        .tilda-font {
+          font-family: 'TildaSans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+      `}</style>
+
       {/* Десктопное меню */}
-      <nav className="bg-white shadow-md sticky top-0 z-30 hidden sm:block">
-        <div className="container mx-auto px-4 py-3">
+      <nav className="bg-white backdrop-blur-lg bg-opacity-95 shadow-xl border-b border-purple-100 sticky top-0 z-30 hidden sm:block">
+        <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
-            {/* Логотип */}
             <div className="flex items-center">
               <Link href={`${langPrefix}/home`} legacyBehavior>
-                <a className="flex items-center">
-                  <div className="text-2xl font-bold">
-                    <span className="bg-gradient-to-r from-teal-500 to-blue-600 text-transparent bg-clip-text">
-                      TABYS
+                <a className="flex items-center group">
+                  <div className="text-xl font-bold tilda-font relative">
+                    <span className="bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 text-transparent bg-clip-text group-hover:from-purple-700 group-hover:via-pink-700 group-hover:to-blue-700 transition-all duration-300">
+                      SARYARQA JASTARY
                     </span>
+                    <div className="absolute -inset-2 bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 opacity-0 group-hover:opacity-10 transition-opacity duration-300 blur-xl rounded-lg"></div>
                   </div>
                 </a>
               </Link>
             </div>
-
-            {/* Навигационные ссылки */}
-            <div className="hidden sm:flex items-center space-x-1">
+            <div className="hidden sm:flex items-center space-x-2">
               {navItems.map((item) => (
                 <div key={item.path}>
-                  {item.requiresAuth ? (
-                    // Для пунктов, требующих авторизации, используем обработчик
+                  {item.isComingSoon ? (
+                    <a
+                      href="#"
+                      onClick={handlePlaceholderClick}
+                      className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 flex items-center text-gray-400 cursor-not-allowed tilda-font relative overflow-hidden`}
+                    >
+                      <div className="relative z-10 flex items-center">
+                        {item.icon}
+                        {item.label}
+                      </div>
+                    </a>
+                  ) : item.requiresAuth ? (
                     <a
                       href={item.path}
                       onClick={(e) => handleNavigationClick(item, e)}
-                      className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center ${
+                      className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 flex items-center tilda-font relative overflow-hidden group ${
                         isActive(item.path)
-                          ? 'bg-teal-50 text-teal-600'
-                          : 'text-gray-700 hover:bg-gray-50 hover:text-teal-600'
+                          ? 'bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 text-white shadow-lg'
+                          : 'text-gray-700 hover:text-white hover:shadow-lg'
                       }`}
                     >
-                      {item.icon}
-                      {item.label}
-                    </a>
-                  ) : (
-                    // Для обычных пунктов используем Link
-                    <Link href={item.path} legacyBehavior>
-                      <a
-                        className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center ${
-                          isActive(item.path)
-                            ? 'bg-teal-50 text-teal-600'
-                            : 'text-gray-700 hover:bg-gray-50 hover:text-teal-600'
-                        }`}
-                      >
+                      <div className={`absolute inset-0 bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300 ${isActive(item.path) ? 'opacity-100' : ''}`}></div>
+                      <div className="relative z-10 flex items-center">
                         {item.icon}
                         {item.label}
+                      </div>
+                    </a>
+                  ) : (
+                    <Link href={item.path} legacyBehavior>
+                      <a
+                        className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 flex items-center tilda-font relative overflow-hidden group ${
+                          isActive(item.path)
+                            ? 'bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 text-white shadow-lg'
+                            : 'text-gray-700 hover:text-white hover:shadow-lg'
+                        }`}
+                      >
+                        <div className={`absolute inset-0 bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300 ${isActive(item.path) ? 'opacity-100' : ''}`}></div>
+                        <div className="relative z-10 flex items-center">
+                          {item.icon}
+                          {item.label}
+                        </div>
                       </a>
                     </Link>
                   )}
                 </div>
               ))}
-
-              {/* Кнопка Войти (только для неавторизованных) */}
               {!isAuthorized && (
                 <button
                   onClick={handleLogin}
-                  className="ml-2 px-3 py-2 bg-white text-teal-600 hover:text-teal-700 rounded-lg text-sm font-medium shadow-md hover:shadow-lg transition-colors duration-300 flex items-center"
+                  className="ml-3 px-5 py-2.5 bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 text-white rounded-xl text-sm font-semibold shadow-lg hover:shadow-xl transition-all duration-300 flex items-center tilda-font group relative overflow-hidden"
                 >
-                  <LogIn size={18} className="mr-2" />
-                  {t.navigation?.login || 'Войти'}
+                  <div className="absolute inset-0 bg-gradient-to-r from-purple-700 via-pink-700 to-blue-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  <div className="relative z-10 flex items-center">
+                    <LogIn size={18} className="mr-2" />
+                    {t.navigation?.login || 'Войти'}
+                  </div>
                 </button>
               )}
-
-              {/* Селектор языка (десктоп) */}
-              <div className="relative ml-2">
+              <div className="relative ml-3">
                 <button
                   id="lang-button"
                   onClick={toggleLangDropdown}
-                  className="flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                  className="flex items-center space-x-2 px-4 py-2.5 rounded-xl text-sm font-medium text-gray-700 hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50 hover:text-purple-700 transition-all duration-300 tilda-font group"
                 >
-                  <Globe size={18} />
+                  <Globe size={18} className="group-hover:text-purple-600 transition-colors duration-300" />
                   <img
-                    src={
-                      languages.find((l) => l.code === currentLang)?.flag ||
-                      '/icons/kz.png'
-                    }
+                    src={languages.find((l) => l.code === currentLang)?.flag || '/icons/kz.png'}
                     alt="Selected language"
-                    className="w-5 h-5 ml-1"
+                    className="w-5 h-5 rounded-full shadow-sm"
                   />
                 </button>
                 {isLangOpen && (
-                  <div
-                    id="lang-dropdown"
-                    className="absolute right-0 mt-2 w-40 rounded-lg shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50 overflow-hidden"
-                  >
-                    <div className="py-1">
+                  <div id="lang-dropdown" className="absolute right-0 mt-2 w-44 rounded-2xl shadow-2xl bg-white ring-1 ring-purple-200 z-50 overflow-hidden border border-purple-100">
+                    <div className="py-2">
                       {languages.map((langItem) => (
                         <button
                           key={langItem.code}
                           onClick={() => handleLanguageChange(langItem.code)}
-                          className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-teal-50 hover:text-teal-600"
+                          className="flex items-center w-full px-4 py-3 text-sm text-gray-700 hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50 hover:text-purple-700 transition-all duration-300 tilda-font"
                         >
-                          <img
-                            src={langItem.flag}
-                            alt={langItem.label}
-                            className="w-5 h-5 mr-2"
-                          />
+                          <img src={langItem.flag} alt={langItem.label} className="w-5 h-5 mr-3 rounded-full shadow-sm" />
                           {langItem.label}
                         </button>
                       ))}
@@ -321,54 +330,42 @@ const Navigation = () => {
       </nav>
 
       {/* Мобильное меню */}
-      <nav className="bg-white shadow-md sm:hidden sticky top-0 z-30">
-        <div className="px-4 py-3">
+      <nav className="bg-white backdrop-blur-lg bg-opacity-95 shadow-xl border-b border-purple-100 sm:hidden sticky top-0 z-30">
+        <div className="px-4 py-4">
           <div className="flex items-center justify-between">
-            {/* Логотип */}
             <Link href={`${langPrefix}/home`} legacyBehavior>
-              <a className="flex items-center">
-                <div className="text-xl font-bold">
-                  <span className="bg-gradient-to-r from-teal-500 to-blue-600 text-transparent bg-clip-text">
-                    TABYS
+              <a className="flex items-center group">
+                <div className="text-xl font-bold tilda-font relative">
+                  <span className="bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 text-transparent bg-clip-text group-hover:from-purple-700 group-hover:via-pink-700 group-hover:to-blue-700 transition-all duration-300">
+                    SARYARQA JASTARY
                   </span>
+                  <div className="absolute -inset-2 bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 opacity-0 group-hover:opacity-10 transition-opacity duration-300 blur-xl rounded-lg"></div>
                 </div>
               </a>
             </Link>
-
-            <div className="flex items-center">
-              {/* Мобильный селектор языка */}
-              <div className="relative mr-2">
+            <div className="flex items-center space-x-2">
+              <div className="relative">
                 <button
                   id="mobile-lang-button"
                   onClick={toggleMobileLangDropdown}
-                  className="p-2 rounded-lg text-gray-600 hover:text-teal-600 hover:bg-gray-50 focus:outline-none"
+                  className="p-2.5 rounded-xl text-gray-600 hover:text-purple-600 hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50 focus:outline-none transition-all duration-300"
                 >
                   <img
-                    src={
-                      languages.find((l) => l.code === currentLang)?.flag ||
-                      '/icons/kz.png'
-                    }
+                    src={languages.find((l) => l.code === currentLang)?.flag || '/icons/kz.png'}
                     alt="Selected language"
-                    className="w-5 h-5"
+                    className="w-6 h-6 rounded-full shadow-sm"
                   />
                 </button>
                 {isMobileLangOpen && (
-                  <div
-                    id="mobile-lang-dropdown"
-                    className="absolute right-0 mt-2 w-32 rounded-lg shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50 overflow-hidden"
-                  >
-                    <div className="py-1">
+                  <div id="mobile-lang-dropdown" className="absolute right-0 mt-2 w-36 rounded-2xl shadow-2xl bg-white ring-1 ring-purple-200 z-50 overflow-hidden border border-purple-100">
+                    <div className="py-2">
                       {languages.map((langItem) => (
                         <button
                           key={langItem.code}
                           onClick={() => handleMobileLanguageChange(langItem.code)}
-                          className="flex items-center w-full px-3 py-2 text-sm text-gray-700 hover:bg-teal-50 hover:text-teal-600"
+                          className="flex items-center w-full px-3 py-2.5 text-sm text-gray-700 hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50 hover:text-purple-700 transition-all duration-300 tilda-font"
                         >
-                          <img
-                            src={langItem.flag}
-                            alt={langItem.label}
-                            className="w-5 h-5 mr-2"
-                          />
+                          <img src={langItem.flag} alt={langItem.label} className="w-4 h-4 mr-2 rounded-full shadow-sm" />
                           {langItem.label}
                         </button>
                       ))}
@@ -376,76 +373,96 @@ const Navigation = () => {
                   </div>
                 )}
               </div>
-
               <button
                 id="hamburger-button"
                 onClick={() => setIsOpen(!isOpen)}
-                className="p-2 rounded-lg text-gray-600 hover:text-teal-600 hover:bg-gray-50 focus:outline-none"
+                className="p-2.5 rounded-xl text-gray-600 hover:text-purple-600 hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50 focus:outline-none transition-all duration-300"
               >
                 {isOpen ? <X size={20} /> : <Menu size={20} />}
               </button>
             </div>
           </div>
         </div>
-
         {isOpen && (
-          <div
-            id="mobile-menu"
-            className="md:hidden bg-white shadow-lg absolute left-0 right-0 z-50"
-          >
-            <div className="px-2 pt-2 pb-3 space-y-1 border-t border-gray-200">
+          <div id="mobile-menu" className="md:hidden bg-white backdrop-blur-lg bg-opacity-98 shadow-2xl absolute left-0 right-0 z-50 border-t border-purple-100">
+            <div className="px-4 pt-4 pb-6 space-y-2">
               {navItems.map((item) => (
                 <div key={item.path}>
-                  {item.requiresAuth ? (
-                    // Для пунктов, требующих авторизации, используем обработчик
+                  {item.isComingSoon ? (
+                    <a
+                      href="#"
+                      onClick={(e) => {
+                        setIsOpen(false);
+                        handlePlaceholderClick(e);
+                      }}
+                      className={`block px-4 py-3 rounded-xl text-base font-medium transition-all duration-300 flex items-center text-gray-400 cursor-not-allowed tilda-font`}
+                    >
+                      {item.icon}
+                      {item.label}
+                    </a>
+                  ) : item.requiresAuth ? (
                     <a
                       href={item.path}
-                      className={`block px-3 py-2 rounded-lg text-base font-medium transition-colors flex items-center ${
+                      className={`block px-4 py-3 rounded-xl text-base font-medium transition-all duration-300 flex items-center tilda-font relative overflow-hidden group ${
                         isActive(item.path)
-                          ? 'bg-teal-50 text-teal-600'
-                          : 'text-gray-700 hover:bg-gray-50 hover:text-teal-600'
+                          ? 'bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 text-white shadow-lg'
+                          : 'text-gray-700 hover:text-white hover:shadow-lg'
                       }`}
                       onClick={(e) => {
                         setIsOpen(false);
                         handleNavigationClick(item, e);
                       }}
                     >
-                      {item.icon}
-                      {item.label}
+                      <div className={`absolute inset-0 bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300 ${isActive(item.path) ? 'opacity-100' : ''}`}></div>
+                      <div className="relative z-10 flex items-center">
+                        {item.icon}
+                        {item.label}
+                      </div>
                     </a>
                   ) : (
-                    // Для обычных пунктов используем Link
                     <Link href={item.path} legacyBehavior>
                       <a
-                        className={`block px-3 py-2 rounded-lg text-base font-medium transition-colors flex items-center ${
+                        className={`block px-4 py-3 rounded-xl text-base font-medium transition-all duration-300 flex items-center tilda-font relative overflow-hidden group ${
                           isActive(item.path)
-                            ? 'bg-teal-50 text-teal-600'
-                            : 'text-gray-700 hover:bg-gray-50 hover:text-teal-600'
+                            ? 'bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 text-white shadow-lg'
+                            : 'text-gray-700 hover:text-white hover:shadow-lg'
                         }`}
                         onClick={() => setIsOpen(false)}
                       >
-                        {item.icon}
-                        {item.label}
+                        <div className={`absolute inset-0 bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300 ${isActive(item.path) ? 'opacity-100' : ''}`}></div>
+                        <div className="relative z-10 flex items-center">
+                          {item.icon}
+                          {item.label}
+                        </div>
                       </a>
                     </Link>
                   )}
                 </div>
               ))}
-
-              {/* Кнопка Войти для мобильного меню (только для неавторизованных) */}
               {!isAuthorized && (
                 <button
                   onClick={handleLogin}
-                  className="w-full px-3 py-2 bg-white text-teal-600 hover:text-teal-700 rounded-lg text-base font-medium shadow-md hover:shadow-lg transition-colors duration-300 flex items-center"
+                  className="w-full px-4 py-3 bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 text-white rounded-xl text-base font-semibold shadow-lg hover:shadow-xl transition-all duration-300 flex items-center tilda-font group relative overflow-hidden mt-4"
                 >
-                  <LogIn size={18} className="mr-2" />
-                  {t.navigation?.login || 'Войти'}
+                  <div className="absolute inset-0 bg-gradient-to-r from-purple-700 via-pink-700 to-blue-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  <div className="relative z-10 flex items-center">
+                    <LogIn size={18} className="mr-2" />
+                    {t.navigation?.login || 'Войти'}
+                  </div>
                 </button>
               )}
             </div>
           </div>
         )}
       </nav>
+
+      {/* Компонент модального окна */}
+      <Modal
+        show={showModal}
+        onClose={closeModal}
+        title={t.navigation?.comingSoonTitle || 'Раздел в разработке'}
+        message={modalMessage}
+      />
     </>
   );
 };
