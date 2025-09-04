@@ -105,14 +105,19 @@ export default function ProjectsList({ getTranslation, currentLang }) {
           processedData = { items: [], total: 0 };
         }
 
+        // ВРЕМЕННЫЙ КОСТЫЛЬ: фильтруем проект с id = 2
+        const filteredItems = processedData.items.filter(project => project.id !== 2);
+
         if (page === 1) {
-          setProjects(processedData.items);
+          setProjects(filteredItems);
         } else {
-          setProjects(prev => [...prev, ...processedData.items]);
+          setProjects(prev => [...prev, ...filteredItems]);
         }
 
-        setTotal(processedData.total);
-        setHasMore(processedData.total > page * 10);
+        // Корректируем total с учетом скрытого проекта
+        const adjustedTotal = processedData.total > 0 ? processedData.total - 1 : 0;
+        setTotal(adjustedTotal);
+        setHasMore(adjustedTotal > page * 10);
       } catch (err) {
         console.error('Error fetching projects:', err);
         setError(safeGetTranslation('projects.fetchError'));
