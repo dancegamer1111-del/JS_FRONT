@@ -368,7 +368,7 @@ export default function ProjectsList({ getTranslation, currentLang }) {
           {/* Компактный список проектов */}
           <div className="space-y-4">
             {projects.map((project) => (
-              <Link href={`/${currentLang}/projects/${project.id}`} key={project.id} legacyBehavior>
+              <Link href={`/${currentLang}/project_detail/${project.id}`} key={project.id} legacyBehavior>
                 <a className="block project-card">
                   <div className="bg-white rounded-xl shadow-sm overflow-hidden hover:border-purple-200 border border-transparent">
                     <div className="md:flex">
