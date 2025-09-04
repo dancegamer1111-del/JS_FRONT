@@ -6,6 +6,17 @@ const nextConfig = {
     domains: ['159.89.232.147'],
   },
 
+  // Добавляем rewrites для API прокси
+  async rewrites() {
+    return [
+      // API прокси - решает проблему Mixed Content
+      {
+        source: '/api/:path*',
+        destination: 'http://159.89.232.147:8000/api/:path*',
+      },
+    ];
+  },
+
   async redirects() {
     return [
       {
@@ -16,9 +27,9 @@ const nextConfig = {
           {
             type: 'query',
             key: 'site_id',
-            value: '(?<site_id>.*)',
-          },
-        ],
+            value: '(?<site_id>.*)'
+          }
+        ]
       },
       {
         source: '/invite_gray',
@@ -28,9 +39,9 @@ const nextConfig = {
           {
             type: 'query',
             key: 'site_id',
-            value: '(?<site_id>.*)',
-          },
-        ],
+            value: '(?<site_id>.*)'
+          }
+        ]
       },
       {
         source: '/invite_photo',
@@ -40,9 +51,9 @@ const nextConfig = {
           {
             type: 'query',
             key: 'site_id',
-            value: '(?<site_id>.*)',
-          },
-        ],
+            value: '(?<site_id>.*)'
+          }
+        ]
       },
       {
         source: '/invite_kz',
@@ -52,9 +63,9 @@ const nextConfig = {
           {
             type: 'query',
             key: 'site_id',
-            value: '(?<site_id>.*)',
-          },
-        ],
+            value: '(?<site_id>.*)'
+          }
+        ]
       },
       {
         source: '/invite_digital',
@@ -64,18 +75,9 @@ const nextConfig = {
           {
             type: 'query',
             key: 'site_id',
-            value: '(?<site_id>.*)',
-          },
-        ],
-      },
-    ];
-  },
-
-  async rewrites() {
-    return [
-      {
-        source: "/api/:path*",
-        destination: "http://159.89.232.147:8000/api/:path*", // прокси на твой backend
+            value: '(?<site_id>.*)'
+          }
+        ]
       },
     ];
   },
