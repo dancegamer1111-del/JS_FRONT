@@ -1,5 +1,6 @@
 // Базовый URL API
-export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
+//export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
+const API_BASE_URL = "http://159.89.232.147:8000";
 
 // Пути API для экспертов
 export const EXPERTS_API = {
