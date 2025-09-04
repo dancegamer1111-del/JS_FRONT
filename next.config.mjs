@@ -2,20 +2,6 @@
 const nextConfig = {
   reactStrictMode: true,
 
-  images: {
-    domains: ['159.89.232.147'],
-  },
-
-  // Добавляем rewrites для API прокси
-  async rewrites() {
-    return [
-      // API прокси - решает проблему Mixed Content
-      {
-        source: '/api/:path*',
-        destination: 'http://159.89.232.147:8000/api/:path*',
-      },
-    ];
-  },
 
   async redirects() {
     return [
