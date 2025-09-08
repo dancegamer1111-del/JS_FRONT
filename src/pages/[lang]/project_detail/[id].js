@@ -6,6 +6,7 @@ import HeaderBack from '../../../components/HeaderBack';
 import VotingModal from '../../../components/projects/VotingModal';
 import ApplicationModal from '../../../components/projects/ApplicationModal';
 import AuthRequiredModal from '../../../components/projects/AuthRequiredModal';
+import ParticipantDetailModal from '../../../components/projects/ParticipantDetailModal';
 import { PROJECTS_API } from '../../../utils/apiConfig';
 import { formatDate } from '../../../utils/dateUtils';
 import {
@@ -24,7 +25,13 @@ import {
   Twitter,
   Play,
   Image as ImageIcon,
-  MapPin
+  MapPin,
+  Eye,
+  Pause,
+  Volume2,
+  VolumeX,
+  Maximize,
+  Info
 } from 'lucide-react';
 
 // Компактные стили шрифтов
@@ -40,8 +47,48 @@ const FontStyles = () => (
     .hover-lift { transition: all 0.2s ease; }
     .hover-lift:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); }
     .line-clamp-3 { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+    .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
   `}</style>
 );
+
+// Компонент для встроенного видео
+const EmbeddedVideo = ({ videoUrl, className = "", autoplay = false }) => {
+  const [isPlaying, setIsPlaying] = useState(autoplay);
+  const [isMuted, setIsMuted] = useState(true);
+
+  // Функция для получения ID видео из YouTube URL
+  const getYouTubeVideoId = (url) => {
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+    const match = url.match(regExp);
+    return (match && match[2].length === 11) ? match[2] : null;
+  };
+
+  const videoId = getYouTubeVideoId(videoUrl);
+
+  if (!videoId) {
+    return (
+      <div className={`bg-gray-100 rounded-lg flex items-center justify-center ${className}`}>
+        <div className="text-center p-4">
+          <Youtube size={24} className="text-gray-400 mx-auto mb-2" />
+          <p className="text-sm text-gray-500 tilda-font">Неподдерживаемый формат видео</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className={`relative rounded-lg overflow-hidden ${className}`}>
+      <iframe
+        src={`https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1&controls=1&showinfo=0`}
+        title="Video"
+        className="w-full h-full"
+        frameBorder="0"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowFullScreen
+      />
+    </div>
+  );
+};
 
 export default function ProjectDetailPage() {
   const router = useRouter();
@@ -52,6 +99,7 @@ export default function ProjectDetailPage() {
   const [showVotingModal, setShowVotingModal] = useState(false);
   const [showApplicationModal, setShowApplicationModal] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showParticipantModal, setShowParticipantModal] = useState(false);
   const [selectedParticipant, setSelectedParticipant] = useState(null);
   const [currentLang, setCurrentLang] = useState('ru');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -61,6 +109,21 @@ export default function ProjectDetailPage() {
       setCurrentLang(lang);
     }
   }, [lang]);
+
+  // Функции для получения локализованного контента
+  const getLocalizedTitle = (item) => {
+    if (currentLang === 'ru' && item.title_ru) {
+      return item.title_ru;
+    }
+    return item.title;
+  };
+
+  const getLocalizedDescription = (item) => {
+    if (currentLang === 'ru' && item.description_ru) {
+      return item.description_ru;
+    }
+    return item.description;
+  };
 
   // Проверка авторизации
   useEffect(() => {
@@ -142,7 +205,8 @@ export default function ProjectDetailPage() {
         'project.description': 'Описание',
         'project.gallery': 'Галерея',
         'project.watchVideo': 'Видео',
-        'project.socialMedia': 'Соцсети'
+        'project.socialMedia': 'Соцсети',
+        'project.viewDetails': 'Подробнее'
       },
       'kz': {
         'project.title': 'Жоба мәліметтері',
@@ -168,7 +232,8 @@ export default function ProjectDetailPage() {
         'project.description': 'Сипаттама',
         'project.gallery': 'Галерея',
         'project.watchVideo': 'Видео',
-        'project.socialMedia': 'Соцжелілер'
+        'project.socialMedia': 'Соцжелілер',
+        'project.viewDetails': 'Толығырақ'
       }
     };
 
@@ -193,6 +258,11 @@ export default function ProjectDetailPage() {
 
     setSelectedParticipant(participant);
     setShowVotingModal(true);
+  };
+
+  const handleViewParticipantDetails = (participant) => {
+    setSelectedParticipant(participant);
+    setShowParticipantModal(true);
   };
 
   const handleApply = () => {
@@ -262,8 +332,8 @@ export default function ProjectDetailPage() {
       <FontStyles />
       <Layout>
         <Head>
-          <title>{project.title}</title>
-          <meta name="description" content={project.description?.substring(0, 160) || project.title} />
+          <title>{getLocalizedTitle(project)}</title>
+          <meta name="description" content={getLocalizedDescription(project)?.substring(0, 160) || getLocalizedTitle(project)} />
         </Head>
 
         <HeaderBack title={getTranslation('project.title')} onBack={() => router.back()} />
@@ -277,7 +347,7 @@ export default function ProjectDetailPage() {
                 <div className="relative">
                   <img
                     src={project.photo_url}
-                    alt={project.title}
+                    alt={getLocalizedTitle(project)}
                     className="w-full h-40 sm:h-48 object-cover"
                   />
                 </div>
@@ -294,7 +364,7 @@ export default function ProjectDetailPage() {
                 </div>
 
                 <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-3 tilda-font leading-tight">
-                  {project.title}
+                  {getLocalizedTitle(project)}
                 </h1>
 
                 <div className="flex items-center text-sm text-gray-600 tilda-font">
@@ -328,34 +398,28 @@ export default function ProjectDetailPage() {
               </div>
             </div>
 
-            {/* Компактное описание */}
+            {/* Компактное описание с локализацией */}
             <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 hover-lift">
               <h2 className="text-lg font-bold text-gray-900 mb-3 tilda-font flex items-center">
                 <FileText size={20} className="mr-2 text-purple-500" />
                 {getTranslation('project.description')}
               </h2>
               <div className="text-gray-700 leading-relaxed tilda-font text-sm">
-                <div dangerouslySetInnerHTML={{ __html: project.description?.replace(/\n/g, '<br />') || '' }} />
+                <div dangerouslySetInnerHTML={{ __html: getLocalizedDescription(project)?.replace(/\n/g, '<br />') || '' }} />
               </div>
             </div>
 
-            {/* Компактное видео */}
+            {/* Встроенное видео */}
             {project.video_url && (
               <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 hover-lift">
-                <a
-                  href={project.video_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center justify-between p-3 bg-gradient-to-r from-red-50 to-pink-50 rounded-lg hover:from-red-100 hover:to-pink-100 transition-all duration-200 border border-red-200 group"
-                >
-                  <div className="flex items-center">
-                    <div className="w-10 h-10 bg-gradient-to-br from-red-500 to-pink-600 rounded-lg flex items-center justify-center mr-3 shadow-sm group-hover:shadow-md transition-all duration-200">
-                      <Youtube size={16} className="text-white" />
-                    </div>
-                    <span className="font-medium text-red-900 tilda-font">{getTranslation('project.watchVideo')}</span>
-                  </div>
-                  <Play size={16} className="text-red-600 group-hover:text-red-700 transition-colors duration-200" />
-                </a>
+                <h3 className="font-bold text-gray-900 mb-3 tilda-font flex items-center">
+                  <Play size={20} className="mr-2 text-purple-500" />
+                  {getTranslation('project.watchVideo')}
+                </h3>
+                <EmbeddedVideo
+                  videoUrl={project.video_url}
+                  className="w-full h-48 sm:h-64"
+                />
               </div>
             )}
 
@@ -385,7 +449,7 @@ export default function ProjectDetailPage() {
               </div>
             )}
 
-            {/* Компактные участники */}
+            {/* Компактные участники с улучшенным дизайном */}
             {project.project_type === 'voting' && project.participants && project.participants.length > 0 && (
               <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover-lift">
                 <div className="p-4 border-b border-gray-100 bg-gray-50">
@@ -403,72 +467,77 @@ export default function ProjectDetailPage() {
                 <div className="divide-y divide-gray-100">
                   {project.participants.map((participant) => (
                     <div key={participant.id} className="p-4 hover:bg-gray-50 transition-all duration-200">
-                      <div className="flex items-start gap-3">
+                      <div className="flex items-center gap-3">
                         <div className="flex-shrink-0">
                           {participant.photo_url ? (
                             <img
                               src={participant.photo_url}
                               alt={participant.name}
-                              className="w-12 h-12 object-cover rounded-full shadow-sm border-2 border-white"
+                              className="w-14 h-14 object-cover rounded-xl shadow-sm border-2 border-white"
                             />
                           ) : (
-                            <div className="w-12 h-12 bg-gradient-to-br from-purple-400 to-indigo-500 rounded-full flex items-center justify-center shadow-sm border-2 border-white">
-                              <User size={16} className="text-white" />
+                            <div className="w-14 h-14 bg-gradient-to-br from-purple-400 to-indigo-500 rounded-xl flex items-center justify-center shadow-sm border-2 border-white">
+                              <User size={18} className="text-white" />
                             </div>
                           )}
                         </div>
 
                         <div className="flex-grow min-w-0">
-                          <div className="flex items-start justify-between gap-3">
-                            <div className="flex-grow min-w-0">
-                              <h4 className="font-bold text-gray-900 mb-1 tilda-font">
-                                {participant.name}
-                              </h4>
-                              {participant.description && (
-                                <p className="text-sm text-gray-600 tilda-font leading-relaxed mb-2 line-clamp-3">
-                                  {participant.description}
-                                </p>
+                          <h4 className="font-bold text-gray-900 mb-1 tilda-font">
+                            {participant.name}
+                          </h4>
+                          {getLocalizedDescription(participant) && (
+                            <p className="text-sm text-gray-600 tilda-font leading-relaxed mb-2 line-clamp-2">
+                              {getLocalizedDescription(participant)}
+                            </p>
+                          )}
+
+                          <div className="flex items-center gap-2">
+                            <div className="flex gap-1">
+                              {participant.instagram_url && (
+                                <a href={participant.instagram_url} target="_blank" rel="noopener noreferrer"
+                                   className="w-6 h-6 bg-gradient-to-br from-pink-400 to-purple-500 rounded-full flex items-center justify-center shadow-sm hover:shadow-md transition-all duration-200 hover:scale-110">
+                                  <Instagram size={12} className="text-white" />
+                                </a>
                               )}
-
-                              <div className="flex gap-1">
-                                {participant.instagram_url && (
-                                  <a href={participant.instagram_url} target="_blank" rel="noopener noreferrer"
-                                     className="w-6 h-6 bg-gradient-to-br from-pink-400 to-purple-500 rounded-full flex items-center justify-center shadow-sm hover:shadow-md transition-all duration-200 hover:scale-110">
-                                    <Instagram size={12} className="text-white" />
-                                  </a>
-                                )}
-                                {participant.facebook_url && (
-                                  <a href={participant.facebook_url} target="_blank" rel="noopener noreferrer"
-                                     className="w-6 h-6 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center shadow-sm hover:shadow-md transition-all duration-200 hover:scale-110">
-                                    <Facebook size={12} className="text-white" />
-                                  </a>
-                                )}
-                                {participant.video_url && (
-                                  <a href={participant.video_url} target="_blank" rel="noopener noreferrer"
-                                     className="w-6 h-6 bg-gradient-to-br from-red-500 to-rose-600 rounded-full flex items-center justify-center shadow-sm hover:shadow-md transition-all duration-200 hover:scale-110">
-                                    <Youtube size={12} className="text-white" />
-                                  </a>
-                                )}
-                              </div>
-                            </div>
-
-                            <div className="text-right flex-shrink-0">
-                              <div className="text-lg font-bold text-purple-600 tilda-font">
-                                {participant.votes_count}
-                              </div>
-                              <div className="text-xs text-gray-500 tilda-font mb-2">голосов</div>
-
-                              {isActive && (
-                                <button
-                                  onClick={() => handleVote(participant)}
-                                  className="px-3 py-1.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white text-sm font-medium rounded-lg shadow-sm hover:shadow-md transition-all duration-200 tilda-font flex items-center gap-1"
-                                >
-                                  <Vote size={12} />
-                                  {getTranslation('project.vote')}
-                                </button>
+                              {participant.facebook_url && (
+                                <a href={participant.facebook_url} target="_blank" rel="noopener noreferrer"
+                                   className="w-6 h-6 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center shadow-sm hover:shadow-md transition-all duration-200 hover:scale-110">
+                                  <Facebook size={12} className="text-white" />
+                                </a>
+                              )}
+                              {participant.video_url && (
+                                <div className="w-6 h-6 bg-gradient-to-br from-red-500 to-rose-600 rounded-full flex items-center justify-center shadow-sm">
+                                  <Youtube size={12} className="text-white" />
+                                </div>
                               )}
                             </div>
+
+                            <button
+                              onClick={() => handleViewParticipantDetails(participant)}
+                              className="px-2 py-1 bg-gray-100 hover:bg-gray-200 text-gray-600 text-xs font-medium rounded-md transition-all duration-200 tilda-font flex items-center gap-1"
+                            >
+                              <Info size={10} />
+                              {getTranslation('project.viewDetails')}
+                            </button>
                           </div>
+                        </div>
+
+                        <div className="text-right flex-shrink-0">
+                          <div className="text-lg font-bold text-purple-600 tilda-font">
+                            {participant.votes_count}
+                          </div>
+                          <div className="text-xs text-gray-500 tilda-font mb-2">голосов</div>
+
+                          {isActive && (
+                            <button
+                              onClick={() => handleVote(participant)}
+                              className="px-3 py-1.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white text-sm font-medium rounded-lg shadow-sm hover:shadow-md transition-all duration-200 tilda-font flex items-center gap-1"
+                            >
+                              <Vote size={12} />
+                              {getTranslation('project.vote')}
+                            </button>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -506,8 +575,39 @@ export default function ProjectDetailPage() {
             onClose={(success) => {
               setShowVotingModal(false);
               setSelectedParticipant(null);
-              if (success) window.location.reload();
+              if (success) {
+                // Обновляем данные проекта
+                const fetchProjectDetails = async () => {
+                  try {
+                    const url = PROJECTS_API.DETAILS(id);
+                    const response = await fetch(url);
+                    if (response.ok) {
+                      const data = await response.json();
+                      setProject(data);
+                    }
+                  } catch (err) {
+                    console.error('Ошибка при обновлении данных:', err);
+                  }
+                };
+                fetchProjectDetails();
+              }
             }}
+            lang={currentLang}
+          />
+        )}
+
+        {/* Модалка детального просмотра участника */}
+        {showParticipantModal && selectedParticipant && (
+          <ParticipantDetailModal
+            participant={selectedParticipant}
+            onClose={() => {
+              setShowParticipantModal(false);
+              setSelectedParticipant(null);
+            }}
+            onVote={isActive ? () => {
+              setShowParticipantModal(false);
+              setShowVotingModal(true);
+            } : null}
             lang={currentLang}
           />
         )}
@@ -526,7 +626,6 @@ export default function ProjectDetailPage() {
             projectId={project.id}
             onClose={(success) => {
               setShowApplicationModal(false);
-              if (success) window.location.reload();
             }}
             lang={currentLang}
           />

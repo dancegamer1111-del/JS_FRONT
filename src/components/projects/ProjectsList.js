@@ -54,6 +54,22 @@ export default function ProjectsList({ getTranslation, currentLang }) {
     return translations[key] || key;
   };
 
+  // Функция для получения локализованного заголовка
+  const getLocalizedTitle = (project) => {
+    if (currentLang === 'ru' && project.title_ru) {
+      return project.title_ru;
+    }
+    return project.title;
+  };
+
+  // Функция для получения локализованного описания
+  const getLocalizedDescription = (project) => {
+    if (currentLang === 'ru' && project.description_ru) {
+      return project.description_ru;
+    }
+    return project.description;
+  };
+
   const [projects, setProjects] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -382,7 +398,7 @@ export default function ProjectsList({ getTranslation, currentLang }) {
                         <div className="md:flex-shrink-0 md:w-64">
                           <img
                             src={project.photo_url}
-                            alt={project.title}
+                            alt={getLocalizedTitle(project)}
                             className="h-48 w-full object-cover md:h-full"
                           />
                         </div>
@@ -419,14 +435,14 @@ export default function ProjectsList({ getTranslation, currentLang }) {
                           )}
                         </div>
 
-                        {/* Заголовок */}
+                        {/* Заголовок с локализацией */}
                         <h3 className="text-xl font-bold text-gray-800 mb-3 tilda-font hover:text-purple-600 transition-colors">
-                          {project.title}
+                          {getLocalizedTitle(project)}
                         </h3>
 
-                        {/* Описание */}
+                        {/* Описание с локализацией */}
                         <p className="text-gray-600 mb-4 text-sm leading-relaxed tilda-font line-clamp-2">
-                          {project.description}
+                          {getLocalizedDescription(project)}
                         </p>
 
                         {/* Метаданные и статистика в одной строке */}
