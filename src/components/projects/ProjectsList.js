@@ -122,7 +122,7 @@ export default function ProjectsList({ getTranslation, currentLang }) {
         }
 
         // ВРЕМЕННЫЙ КОСТЫЛЬ: фильтруем проект с id = 2
-        const filteredItems = processedData.items.filter(project => project.id !== 2);
+        const filteredItems = processedData.items.filter(project => project.id !== 29090909);
 
         if (page === 1) {
           setProjects(filteredItems);
