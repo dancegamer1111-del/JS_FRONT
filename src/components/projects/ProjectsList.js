@@ -121,6 +121,7 @@ export default function ProjectsList({ getTranslation, currentLang }) {
           processedData = { items: [], total: 0 };
         }
 
+
         // ВРЕМЕННЫЙ КОСТЫЛЬ: фильтруем проект с id = 2
         const filteredItems = processedData.items.filter(project => project.id !== 29090909);
 
