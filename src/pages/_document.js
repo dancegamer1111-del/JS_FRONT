@@ -11,37 +11,37 @@ export default function MyDocument() {
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta
           name="description"
-          content="Барлық той түріне арналған онлайн шақыруларды өзіңіз жасай аласыз. Қыз ұзату, үйлену той, сүндет той, мерейтой және т.б."
+          content="SARYARQA JASTARY - жастарға арналған платформа. Жұмыс іздеу, білім алу, жобаларға дауыс беру және даму мүмкіндіктері."
         />
         <meta
           name="keywords"
-          content="shaqyru, онлайн шақыру,шақыру жасау, қыз ұзату, той, сүндет той, уйлену той, бесік той, мерей той, туған күн..."
+          content="SARYARQA JASTARY, жастар, жұмыс іздеу, білім беру, жобалар, дауыс беру, мансап, дамыту, жастар платформасы, Сарыарқа жастары"
         />
-        <meta name="author" content="Shaqyru24 Team" />
+        <meta name="author" content="SARYARQA JASTARY Team" />
         <meta name="robots" content="index, follow" />
-        <meta name="theme-color" content="#141524" />
+        <meta name="theme-color" content="#1e40af" />
 
         {/* Open Graph */}
-        <meta property="og:title" content="Тойға арналған шақыру жасау" />
+        <meta property="og:title" content="SARYARQA JASTARY - Жастарға арналған платформа" />
         <meta
           property="og:description"
-          content="Барлық той түріне арналған онлайн шақыруларды өзіңіз жасай аласыз. Қыз ұзату, үйлену той, сүндет той және т.б."
+          content="Жұмыс іздеу, білім алу, жобаларға дауыс беру және даму мүмкіндіктері бір жерде. Жастардың болашағын құрайық!"
         />
-        <meta property="og:image" content="https://tyrasoft.kz/uploads/invite_hero_59.jpeg" />
-        <meta property="og:url" content="https://shaqyru24.kz" />
+        <meta property="og:image" content="https://saryarqajastary.kz/og-image.png" />
+        <meta property="og:url" content="https://saryarqajastary.kz" />
         <meta property="og:type" content="website" />
 
         {/* Twitter Cards */}
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="Тойға арналған  шақыру жасау | Shaqyru24.kz" />
+        <meta name="twitter:title" content="SARYARQA JASTARY - Жастарға арналған платформа" />
         <meta
           name="twitter:description"
-          content="Барлық той түріне арналған онлайн шақыруларды өзіңіз жасай аласыз."
+          content="Жұмыс іздеу, білім алу, жобаларға дауыс беру және даму мүмкіндіктері бір жерде."
         />
-        <meta name="twitter:image" content="https://shaqyru24.kz/twitter-image.png" />
+        <meta name="twitter:image" content="https://saryarqajastary.kz/twitter-image.png" />
 
         {/* Canonical */}
-        <link rel="canonical" href="https://shaqyru24.kz" />
+        <link rel="canonical" href="https://saryarqajastary.kz" />
 
         {/* Favicons */}
         <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
@@ -52,65 +52,35 @@ export default function MyDocument() {
         <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
         <link rel="manifest" href="/site.webmanifest" />
 
-        {/* Google Fonts (пример) */}
+        {/* Google Fonts */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
         <link
-          href="https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;500;700;900&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Roboto:wght@100;300;400;500;700;900&display=swap"
           rel="stylesheet"
         />
 
-        {/* -- Google tag (gtag.js) -- */}
-        <script
-          async
-          src="https://www.googletagmanager.com/gtag/js?id=AW-16975357099"
-        />
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              window.dataLayer = window.dataLayer || [];
-              function gtag(){dataLayer.push(arguments);}
-              gtag('js', new Date());
-              gtag('config', 'AW-16975357099');
-            `,
-          }}
-        />
 
-        {/* Yandex Verification (если нужно) */}
-        <meta name="yandex-verification" content="e962c8d29c54939b" />
 
-        {/* Яндекс Метрика (ВАШ КОД) */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              (function(m,e,t,r,i,k,a){
-                  m[i]=m[i]||function(){
-                      (m[i].a=m[i].a||[]).push(arguments)
-                  };
-                  m[i].l=1*new Date();
-                  for (var j = 0; j < document.scripts.length; j++) {
-                      if (document.scripts[j].src === r) { return; }
-                  }
-                  k=e.createElement(t), a=e.getElementsByTagName(t)[0],
-                  k.async=1, k.src=r, a.parentNode.insertBefore(k,a)
-              })(window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
 
-              ym(100775769, "init", {
-                clickmap: true,
-                trackLinks: true,
-                accurateTrackBounce: true
-              });
-            `,
-          }}
-        />
 
-        {/* Title (глобальный по умолчанию) */}
-        <title>Тойға шақыру жасау | shaqyru24.kz</title>
 
-        {/* Встроенные стили (пример) */}
+        {/* Title */}
+        <title>SARYARQA JASTARY - Жастарға арналған платформа</title>
+
+        {/* Встроенные стили */}
         <style>{`
           body {
-            background-color: #141524;
+            background-color: #f8fafc;
+            font-family: 'Inter', 'Roboto', sans-serif;
+          }
+
+          * {
+            box-sizing: border-box;
+          }
+
+          html {
+            scroll-behavior: smooth;
           }
         `}</style>
       </Head>
@@ -119,16 +89,6 @@ export default function MyDocument() {
         <Main />
         <NextScript />
 
-        {/* noscript для Я.Метрики */}
-        <noscript>
-          <div>
-       <img
-  src="https://mc.yandex.ru/watch/100775769"
-  style={{ position: 'absolute', left: '-9999px' }}
-  alt=""
-/>
-          </div>
-        </noscript>
       </body>
     </Html>
   );
