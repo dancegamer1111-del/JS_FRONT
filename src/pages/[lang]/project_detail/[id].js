@@ -520,7 +520,7 @@ export default function ProjectDetailPage() {
               </div>
             )}
 
-            {/* Компактные участники с улучшенным дизайном */}
+            {/* Компактные участники с улучшенным дизайном и местами */}
             {project.project_type === 'voting' && project.participants && project.participants.length > 0 && (
               <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover-lift">
                 <div className="p-4 border-b border-gray-100 bg-gray-50">
@@ -539,7 +539,7 @@ export default function ProjectDetailPage() {
                   {project.participants.map((participant) => (
                     <div key={participant.id} className="p-4 hover:bg-gray-50 transition-all duration-200">
                       <div className="flex items-center gap-3">
-                        <div className="flex-shrink-0">
+                        <div className="flex-shrink-0 relative">
                           {participant.photo_url ? (
                             <img
                               src={participant.photo_url}
@@ -551,6 +551,28 @@ export default function ProjectDetailPage() {
                               <User size={18} className="text-white" />
                             </div>
                           )}
+
+                          {/* Индикатор места */}
+                          <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2">
+                            <div className={`px-2 py-0.5 rounded-full text-xs font-bold shadow-lg border-2 border-white ${
+                              (() => {
+                                // Сортируем участников по количеству голосов для определения места
+                                const sortedParticipants = [...project.participants].sort((a, b) => b.votes_count - a.votes_count);
+                                const place = sortedParticipants.findIndex(p => p.id === participant.id) + 1;
+
+                                if (place === 1) return 'bg-gradient-to-r from-yellow-400 to-yellow-500 text-yellow-900';
+                                if (place === 2) return 'bg-gradient-to-r from-gray-300 to-gray-400 text-gray-800';
+                                if (place === 3) return 'bg-gradient-to-r from-orange-400 to-orange-500 text-orange-900';
+                                return 'bg-gradient-to-r from-purple-500 to-indigo-600 text-white';
+                              })()
+                            } tilda-font min-w-[20px] text-center`}>
+                              {(() => {
+                                const sortedParticipants = [...project.participants].sort((a, b) => b.votes_count - a.votes_count);
+                                const place = sortedParticipants.findIndex(p => p.id === participant.id) + 1;
+                                return place;
+                              })()}
+                            </div>
+                          </div>
                         </div>
 
                         <div className="flex-grow min-w-0">

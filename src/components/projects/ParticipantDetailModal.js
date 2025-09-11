@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, Instagram, Youtube, User, Vote, Trophy, Play } from 'lucide-react';
+import { X, Instagram, Youtube, User, Vote, Trophy, Play, ChevronDown, ChevronUp } from 'lucide-react';
 
 // Компонент для встроенного видео участника
 const ParticipantVideo = ({ videoUrl, className = "" }) => {
@@ -222,6 +222,60 @@ const ParticipantVideo = ({ videoUrl, className = "" }) => {
   );
 };
 
+// Компонент для сворачиваемого описания
+const CollapsibleDescription = ({ description, lang }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const maxLength = 200; // Увеличили лимит для модалки
+
+  const getTranslation = (key) => {
+    const translations = {
+      'ru': {
+        'readMore': 'Читать полностью',
+        'readLess': 'Скрыть'
+      },
+      'kz': {
+        'readMore': 'Толық оқу',
+        'readLess': 'Жасыру'
+      }
+    };
+    return translations[lang]?.[key] || translations['ru'][key] || key;
+  };
+
+  if (!description) return null;
+
+  const shouldTruncate = description.length > maxLength;
+  const displayText = shouldTruncate && !isExpanded
+    ? description.substring(0, maxLength) + '...'
+    : description;
+
+  return (
+    <div className="text-gray-700 leading-relaxed tilda-font bg-gray-50 rounded-lg p-4 border">
+      <div dangerouslySetInnerHTML={{
+        __html: displayText.replace(/\n/g, '<br />')
+      }} />
+
+      {shouldTruncate && (
+        <button
+          onClick={() => setIsExpanded(!isExpanded)}
+          className="mt-3 flex items-center gap-1 text-purple-600 hover:text-purple-700 font-medium text-sm transition-colors duration-200"
+        >
+          {isExpanded ? (
+            <>
+              <ChevronUp size={16} />
+              {getTranslation('readLess')}
+            </>
+          ) : (
+            <>
+              <ChevronDown size={16} />
+              {getTranslation('readMore')}
+            </>
+          )}
+        </button>
+      )}
+    </div>
+  );
+};
+
 export default function ParticipantDetailModal({ participant, onClose, onVote, lang }) {
   const [imageError, setImageError] = useState(false);
 
@@ -315,19 +369,19 @@ export default function ParticipantDetailModal({ participant, onClose, onVote, l
           {/* Контент с прокруткой */}
           <div className="overflow-y-auto custom-scrollbar" style={{ maxHeight: 'calc(90vh - 140px)' }}>
             <div className="p-4 space-y-6">
-              {/* Фото и основная информация */}
+              {/* Фото и основная информация - увеличенное фото */}
               <div className="text-center">
                 <div className="relative inline-block mb-4">
                   {participant.photo_url && !imageError ? (
                     <img
                       src={participant.photo_url}
                       alt={participant.name}
-                      className="w-32 h-32 object-cover rounded-2xl shadow-lg border-4 border-white"
+                      className="w-40 h-40 object-cover rounded-2xl shadow-lg border-4 border-white"
                       onError={() => setImageError(true)}
                     />
                   ) : (
-                    <div className="w-32 h-32 bg-gradient-to-br from-purple-400 to-indigo-500 rounded-2xl flex items-center justify-center shadow-lg border-4 border-white">
-                      <User size={48} className="text-white" />
+                    <div className="w-40 h-40 bg-gradient-to-br from-purple-400 to-indigo-500 rounded-2xl flex items-center justify-center shadow-lg border-4 border-white">
+                      <User size={56} className="text-white" />
                     </div>
                   )}
 
@@ -351,17 +405,16 @@ export default function ParticipantDetailModal({ participant, onClose, onVote, l
                 </div>
               </div>
 
-              {/* Описание */}
+              {/* Описание с кнопкой "Читать полностью" */}
               {localizedDescription && (
                 <div>
                   <h5 className="font-semibold text-gray-900 mb-3 tilda-font">
                     {getTranslation('participant.description')}
                   </h5>
-                  <div className="text-gray-700 leading-relaxed tilda-font bg-gray-50 rounded-lg p-4 border">
-                    <div dangerouslySetInnerHTML={{
-                      __html: localizedDescription.replace(/\n/g, '<br />')
-                    }} />
-                  </div>
+                  <CollapsibleDescription
+                    description={localizedDescription}
+                    lang={lang}
+                  />
                 </div>
               )}
 
