@@ -31,7 +31,9 @@ import {
   Volume2,
   VolumeX,
   Maximize,
-  Info
+  Info,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
 
 // Компактные стили шрифтов
@@ -86,6 +88,70 @@ const EmbeddedVideo = ({ videoUrl, className = "", autoplay = false }) => {
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
         allowFullScreen
       />
+    </div>
+  );
+};
+
+// Компонент для сворачиваемого описания
+const CollapsibleDescription = ({ description, maxLength = 150, currentLang }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  const getTranslation = (key) => {
+    const translations = {
+      'ru': {
+        'showMore': 'Показать больше',
+        'showLess': 'Скрыть'
+      },
+      'kz': {
+        'showMore': 'Толығырақ көрсету',
+        'showLess': 'Жасыру'
+      }
+    };
+    return translations[currentLang]?.[key] || translations['ru']?.[key] || key;
+  };
+
+  if (!description) return null;
+
+  const shouldTruncate = isMobile && description.length > maxLength;
+  const displayText = shouldTruncate && !isExpanded
+    ? description.substring(0, maxLength) + '...'
+    : description;
+
+  return (
+    <div className="text-gray-700 leading-relaxed tilda-font text-sm">
+      <div dangerouslySetInnerHTML={{
+        __html: displayText.replace(/\n/g, '<br />')
+      }} />
+
+      {shouldTruncate && (
+        <button
+          onClick={() => setIsExpanded(!isExpanded)}
+          className="mt-2 flex items-center gap-1 text-purple-600 hover:text-purple-700 font-medium text-sm transition-colors duration-200"
+        >
+          {isExpanded ? (
+            <>
+              <ChevronUp size={16} />
+              {getTranslation('showLess')}
+            </>
+          ) : (
+            <>
+              <ChevronDown size={16} />
+              {getTranslation('showMore')}
+            </>
+          )}
+        </button>
+      )}
     </div>
   );
 };
@@ -398,15 +464,16 @@ export default function ProjectDetailPage() {
               </div>
             </div>
 
-            {/* Компактное описание с локализацией */}
+            {/* Компактное описание с локализацией и сворачиванием */}
             <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 hover-lift">
               <h2 className="text-lg font-bold text-gray-900 mb-3 tilda-font flex items-center">
                 <FileText size={20} className="mr-2 text-purple-500" />
                 {getTranslation('project.description')}
               </h2>
-              <div className="text-gray-700 leading-relaxed tilda-font text-sm">
-                <div dangerouslySetInnerHTML={{ __html: getLocalizedDescription(project)?.replace(/\n/g, '<br />') || '' }} />
-              </div>
+              <CollapsibleDescription
+                description={getLocalizedDescription(project)}
+                currentLang={currentLang}
+              />
             </div>
 
             {/* Встроенное видео */}
@@ -423,7 +490,7 @@ export default function ProjectDetailPage() {
               </div>
             )}
 
-            {/* Компактная галерея */}
+            {/* Галерея с нумерацией */}
             {project.gallery && project.gallery.length > 0 && (
               <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 hover-lift">
                 <h3 className="font-bold text-gray-900 mb-3 tilda-font flex items-center">
@@ -438,6 +505,10 @@ export default function ProjectDetailPage() {
                         alt={image.description || `Фото ${index + 1}`}
                         className="w-full h-20 object-cover group-hover:scale-105 transition-transform duration-200"
                       />
+                      {/* Более заметная нумерация фото */}
+                      <div className="absolute top-2 left-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-sm font-bold px-2 py-1 rounded-full shadow-lg border-2 border-white tilda-font min-w-[24px] text-center">
+                        {index + 1}
+                      </div>
                     </div>
                   ))}
                 </div>
