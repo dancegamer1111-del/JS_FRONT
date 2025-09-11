@@ -459,27 +459,8 @@ export default function VotesManagementPage() {
                 {getTranslation('votes.massActions')}
               </h2>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                <button
-                  onClick={() => handleMassAction('boostAll')}
-                  className="px-3 py-2 bg-green-100 hover:bg-green-200 text-green-700 font-medium rounded-lg transition-all duration-200 tilda-font text-sm flex items-center gap-1"
-                >
-                  <TrendingUp size={14} />
-                  {getTranslation('votes.boostAll')}
-                </button>
-                <button
-                  onClick={() => handleMassAction('distributeRandom')}
-                  className="px-3 py-2 bg-blue-100 hover:bg-blue-200 text-blue-700 font-medium rounded-lg transition-all duration-200 tilda-font text-sm flex items-center gap-1"
-                >
-                  <Target size={14} />
-                  {getTranslation('votes.distributeRandom')}
-                </button>
-                <button
-                  onClick={handleResetAll}
-                  className="px-3 py-2 bg-red-100 hover:bg-red-200 text-red-700 font-medium rounded-lg transition-all duration-200 tilda-font text-sm flex items-center gap-1"
-                >
-                  <RotateCcw size={14} />
-                  {getTranslation('votes.resetAll')}
-                </button>
+
+
               </div>
             </div>
 
