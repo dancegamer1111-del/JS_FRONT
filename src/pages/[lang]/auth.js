@@ -118,7 +118,7 @@ export default function AuthPage({ lang: serverLang, translations: serverTransla
         localStorage.setItem('token', data.access_token);
 
         // Redirect to the requested page or default to home
-        const redirectPath = redirect || `/${currentLang}/experts`;
+        const redirectPath = redirect || `/${currentLang}/projects`;
         router.push(redirectPath);
       } else {
         // Show success message for registration
@@ -171,7 +171,7 @@ export default function AuthPage({ lang: serverLang, translations: serverTransla
         title={isLogin
           ? (getTranslation('auth.login.title') || 'Log In')
           : (getTranslation('auth.register.title') || 'Sign Up')}
-        onBack={() => router.push(`/${currentLang}/home`)}
+        onBack={() => router.push(`/${currentLang}/projects`)}
       />
 
       <div className="max-w-md mx-auto px-4 py-8">

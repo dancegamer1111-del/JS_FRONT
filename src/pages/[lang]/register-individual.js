@@ -120,7 +120,7 @@ const RegisterIndividual = () => {
 
       // Перенаправляем сразу на home
       setTimeout(() => {
-        router.push(`/${currentLang}/home`);
+        router.push(`/${currentLang}/projects`);
       }, 2000);
 
     } catch (err) {
