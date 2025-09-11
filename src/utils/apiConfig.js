@@ -58,7 +58,28 @@ export const PROJECTS_API = {
   MY_VOTES: `${API_BASE}/api/v2/projects/my-votes`,
   MY_APPLICATIONS: `${API_BASE}/api/v2/projects/my-applications`,
   UPLOAD_PHOTO: (id) => `${API_BASE}/api/v2/projects/${id}/upload-photo`,
-  UPLOAD_GALLERY: (id) => `${API_BASE}/api/v2/projects/${id}/upload-gallery`
+  UPLOAD_GALLERY: (id) => `${API_BASE}/api/v2/projects/${id}/upload-gallery`,
+
+  // Новые эндпоинты для управления голосами
+  VOTES: {
+    // Увеличение голосов конкретного участника
+    BOOST_PARTICIPANT: (projectId, participantId) => `${API_BASE}/api/v2/projects/${projectId}/participants/${participantId}/boost-votes`,
+
+    // Установка точного количества голосов у участника
+    SET_PARTICIPANT: (projectId, participantId) => `${API_BASE}/api/v2/projects/${projectId}/participants/${participantId}/set-votes`,
+
+    // Массовое увеличение голосов всех участников
+    BOOST_ALL: (projectId) => `${API_BASE}/api/v2/projects/${projectId}/boost-all-votes`,
+
+    // Случайное распределение голосов
+    DISTRIBUTE_RANDOM: (projectId) => `${API_BASE}/api/v2/projects/${projectId}/distribute-random-votes`,
+
+    // Сброс всех голосов в проекте
+    RESET_ALL: (projectId) => `${API_BASE}/api/v2/projects/${projectId}/reset-votes`,
+
+    // Создание фейковых голосов с записями в таблице Vote
+    CREATE_FAKE: (projectId, participantId) => `${API_BASE}/api/v2/projects/${projectId}/participants/${participantId}/create-fake-votes`
+  }
 };
 
 
