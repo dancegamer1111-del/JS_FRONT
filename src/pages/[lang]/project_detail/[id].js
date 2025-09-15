@@ -33,7 +33,10 @@ import {
   Maximize,
   Info,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  CheckCircle,
+  Timer,
+  Heart
 } from 'lucide-react';
 
 // Компактные стили шрифтов
@@ -50,8 +53,351 @@ const FontStyles = () => (
     .hover-lift:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); }
     .line-clamp-3 { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
     .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+    @keyframes pulse-glow {
+      0%, 100% { box-shadow: 0 0 20px rgba(147, 51, 234, 0.4); }
+      50% { box-shadow: 0 0 30px rgba(147, 51, 234, 0.6); }
+    }
+
+    .pulse-glow {
+      animation: pulse-glow 2s infinite;
+    }
+
+    @keyframes gradient-shift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    .gradient-animate {
+      background-size: 200% 200%;
+      animation: gradient-shift 3s ease infinite;
+    }
   `}</style>
 );
+
+// Компонент фиксированного блока внизу для мобильных
+const FixedBottomVotingInfo = ({ endDate, totalVoters, currentLang, isActive, onToggleExpand, isExpanded }) => {
+  const [timeLeft, setTimeLeft] = useState({});
+  const [votingActive, setVotingActive] = useState(true);
+
+  useEffect(() => {
+    if (!isActive) {
+      setVotingActive(false);
+      return;
+    }
+
+    const timer = setInterval(() => {
+      const now = new Date().getTime();
+      const end = new Date(endDate).getTime();
+      const difference = end - now;
+
+      if (difference > 0) {
+        const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+
+        setTimeLeft({ days, hours, minutes, seconds });
+        setVotingActive(true);
+      } else {
+        setTimeLeft({});
+        setVotingActive(false);
+      }
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [endDate, isActive]);
+
+  const getTranslation = (key) => {
+    const translations = {
+      'ru': {
+        'timer.ended': 'Голосование завершено',
+        'timer.days': 'дн.',
+        'timer.hours': 'ч.',
+        'timer.minutes': 'мин.',
+        'timer.seconds': 'сек.',
+        'thanks.participants': 'участников проголосовали',
+        'thanks.verified': 'Система защищена от накруток',
+        'thanks.security': 'Каждый голос верифицирован и учтен'
+      },
+      'kz': {
+        'timer.ended': 'Дауыс беру аяқталды',
+        'timer.days': 'күн',
+        'timer.hours': 'сағ.',
+        'timer.minutes': 'мин.',
+        'timer.seconds': 'сек.',
+        'thanks.participants': 'қатысушы дауыс берді',
+        'thanks.verified': 'Жүйе жалған дауыстардан қорғалған',
+        'thanks.security': 'Әрбір дауыс тексерілген және есепке алынған'
+      }
+    };
+    return translations[currentLang]?.[key] || translations['ru']?.[key] || key;
+  };
+
+  if (!isActive || !votingActive) return null;
+
+  return (
+    <>
+      {/* Фиксированный блок внизу экрана */}
+      <div className="fixed bottom-0 left-0 right-0 z-50 bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-2xl border-t-4 border-white/20 md:hidden">
+        {/* Компактная версия */}
+        {!isExpanded && (
+          <div
+            className="px-4 py-3 cursor-pointer"
+            onClick={onToggleExpand}
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Timer size={18} className="text-white/90" />
+                <div className="flex gap-2 text-sm font-bold tilda-font">
+                  {timeLeft.days > 0 && <span>{timeLeft.days}д</span>}
+                  <span>{(timeLeft.hours || 0).toString().padStart(2, '0')}:{(timeLeft.minutes || 0).toString().padStart(2, '0')}:{(timeLeft.seconds || 0).toString().padStart(2, '0')}</span>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-1">
+                  <Heart size={16} className="text-emerald-300" />
+                  <span className="text-sm font-bold tilda-font">{totalVoters.toLocaleString()}</span>
+                </div>
+                <ChevronUp size={20} className="text-white/70" />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Развернутая версия */}
+        {isExpanded && (
+          <div className="px-4 py-4">
+            <div
+              className="flex items-center justify-between mb-4 cursor-pointer"
+              onClick={onToggleExpand}
+            >
+              <h3 className="font-bold tilda-font text-lg">До окончания</h3>
+              <ChevronDown size={20} className="text-white/70" />
+            </div>
+
+            <div className="grid grid-cols-4 gap-2 mb-4">
+              {timeLeft.days > 0 && (
+                <div className="text-center">
+                  <div className="bg-white/20 rounded-lg p-2 backdrop-blur-sm">
+                    <div className="text-lg font-bold tilda-font">{timeLeft.days}</div>
+                    <div className="text-xs tilda-font opacity-90">{getTranslation('timer.days')}</div>
+                  </div>
+                </div>
+              )}
+
+              <div className={`text-center ${timeLeft.days <= 0 ? 'col-span-1' : ''}`}>
+                <div className="bg-white/20 rounded-lg p-2 backdrop-blur-sm">
+                  <div className="text-lg font-bold tilda-font">{timeLeft.hours || 0}</div>
+                  <div className="text-xs tilda-font opacity-90">{getTranslation('timer.hours')}</div>
+                </div>
+              </div>
+
+              <div className={`text-center ${timeLeft.days <= 0 ? 'col-span-1' : ''}`}>
+                <div className="bg-white/20 rounded-lg p-2 backdrop-blur-sm">
+                  <div className="text-lg font-bold tilda-font">{timeLeft.minutes || 0}</div>
+                  <div className="text-xs tilda-font opacity-90">{getTranslation('timer.minutes')}</div>
+                </div>
+              </div>
+
+              <div className={`text-center ${timeLeft.days <= 0 ? 'col-span-1' : ''}`}>
+                <div className="bg-white/20 rounded-lg p-2 backdrop-blur-sm">
+                  <div className="text-lg font-bold tilda-font">{timeLeft.seconds || 0}</div>
+                  <div className="text-xs tilda-font opacity-90">{getTranslation('timer.seconds')}</div>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white/10 rounded-lg p-4 backdrop-blur-sm border border-white/20">
+              <div className="text-center mb-3">
+                <div className="flex items-center justify-center gap-2 mb-2">
+                  <div className="w-10 h-10 bg-emerald-500 rounded-full flex items-center justify-center">
+                    <CheckCircle size={20} className="text-white" />
+                  </div>
+                  <div className="text-left">
+                    <div className="text-xl font-bold tilda-font text-white">{totalVoters.toLocaleString()}</div>
+                    <div className="text-sm tilda-font text-white/90">{getTranslation('thanks.participants')}</div>
+                  </div>
+                </div>
+
+                <div className="space-y-2 mt-3">
+                  <div className="flex items-center justify-center text-sm tilda-font text-emerald-200 bg-emerald-500/20 rounded-lg px-3 py-2">
+                    <CheckCircle size={16} className="mr-2 flex-shrink-0" />
+                    <span className="font-medium">{getTranslation('thanks.security')}</span>
+                  </div>
+                  <div className="flex items-center justify-center text-xs tilda-font text-white/80">
+                    <div className="w-2 h-2 bg-emerald-400 rounded-full mr-2 animate-pulse"></div>
+                    {getTranslation('thanks.verified')}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Отступ для фиксированного блока */}
+      <div className="h-16 md:hidden"></div>
+    </>
+  );
+};
+
+// Обычный таймер для десктопа
+const VotingTimer = ({ endDate, currentLang }) => {
+  const [timeLeft, setTimeLeft] = useState({});
+  const [isActive, setIsActive] = useState(true);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      const now = new Date().getTime();
+      const end = new Date(endDate).getTime();
+      const difference = end - now;
+
+      if (difference > 0) {
+        const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+
+        setTimeLeft({ days, hours, minutes, seconds });
+        setIsActive(true);
+      } else {
+        setTimeLeft({});
+        setIsActive(false);
+      }
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [endDate]);
+
+  const getTranslation = (key) => {
+    const translations = {
+      'ru': {
+        'timer.title': 'До завершения голосования',
+        'timer.ended': 'Голосование завершено',
+        'timer.days': 'дн.',
+        'timer.hours': 'ч.',
+        'timer.minutes': 'мин.',
+        'timer.seconds': 'сек.'
+      },
+      'kz': {
+        'timer.title': 'Дауыс беру аяқталғанға дейін',
+        'timer.ended': 'Дауыс беру аяқталды',
+        'timer.days': 'күн',
+        'timer.hours': 'сағ.',
+        'timer.minutes': 'мин.',
+        'timer.seconds': 'сек.'
+      }
+    };
+    return translations[currentLang]?.[key] || translations['ru']?.[key] || key;
+  };
+
+  if (!isActive) {
+    return (
+      <div className="bg-gradient-to-r from-gray-400 to-gray-500 rounded-xl p-4 text-white shadow-lg hidden md:block">
+        <div className="flex items-center justify-center">
+          <AlertTriangle size={20} className="mr-2" />
+          <span className="font-bold tilda-font">{getTranslation('timer.ended')}</span>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-gradient-to-r from-purple-600 to-indigo-600 gradient-animate rounded-xl p-4 text-white shadow-lg pulse-glow hidden md:block">
+      <div className="text-center">
+        <div className="flex items-center justify-center mb-3">
+          <Timer size={20} className="mr-2" />
+          <h3 className="font-bold tilda-font text-sm">{getTranslation('timer.title')}</h3>
+        </div>
+
+        <div className="grid grid-cols-4 gap-2">
+          {timeLeft.days !== undefined && (
+            <div className="text-center">
+              <div className="bg-white bg-opacity-20 rounded-lg p-2 backdrop-blur-sm">
+                <div className="text-2xl font-bold tilda-font">{timeLeft.days}</div>
+                <div className="text-xs tilda-font opacity-90">{getTranslation('timer.days')}</div>
+              </div>
+            </div>
+          )}
+
+          <div className="text-center">
+            <div className="bg-white bg-opacity-20 rounded-lg p-2 backdrop-blur-sm">
+              <div className="text-2xl font-bold tilda-font">{timeLeft.hours || 0}</div>
+              <div className="text-xs tilda-font opacity-90">{getTranslation('timer.hours')}</div>
+            </div>
+          </div>
+
+          <div className="text-center">
+            <div className="bg-white bg-opacity-20 rounded-lg p-2 backdrop-blur-sm">
+              <div className="text-2xl font-bold tilda-font">{timeLeft.minutes || 0}</div>
+              <div className="text-xs tilda-font opacity-90">{getTranslation('timer.minutes')}</div>
+            </div>
+          </div>
+
+          <div className="text-center">
+            <div className="bg-white bg-opacity-20 rounded-lg p-2 backdrop-blur-sm">
+              <div className="text-2xl font-bold tilda-font">{timeLeft.seconds || 0}</div>
+              <div className="text-xs tilda-font opacity-90">{getTranslation('timer.seconds')}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Компонент благодарности верифицированным пользователям для десктопа
+const VerifiedVotersThankYou = ({ totalVoters, currentLang }) => {
+  const getTranslation = (key) => {
+    const translations = {
+      'ru': {
+        'thanks.participants': 'участников проголосовали',
+        'thanks.verified': 'Система защищена от накруток',
+        'thanks.security': 'Каждый голос верифицирован и учтен'
+      },
+      'kz': {
+        'thanks.participants': 'қатысушы дауыс берді',
+        'thanks.verified': 'Жүйе жалған дауыстардан қорғалған',
+        'thanks.security': 'Әрбір дауыс тексерілген және есепке алынған'
+      }
+    };
+    return translations[currentLang]?.[key] || translations['ru']?.[key] || key;
+  };
+
+  if (!totalVoters || totalVoters === 0) return null;
+
+  return (
+    <div className="bg-gradient-to-br from-emerald-50 to-teal-50 border-2 border-emerald-200 rounded-xl p-6 shadow-sm hidden md:block">
+      <div className="text-center">
+        <div className="mb-4">
+          <div className="flex items-center justify-center gap-3 mb-3">
+            <div className="w-12 h-12 bg-emerald-500 rounded-full flex items-center justify-center shadow-md">
+              <CheckCircle size={24} className="text-white" />
+            </div>
+            <div className="text-left">
+              <div className="text-3xl font-bold tilda-font text-emerald-800">{totalVoters.toLocaleString()}</div>
+              <div className="text-sm tilda-font text-emerald-600 font-medium">{getTranslation('thanks.participants')}</div>
+            </div>
+          </div>
+        </div>
+
+        <div className="space-y-3">
+          <div className="flex items-center justify-center text-sm tilda-font text-emerald-700 bg-emerald-100 rounded-lg px-4 py-3 border border-emerald-200">
+            <CheckCircle size={18} className="mr-3 flex-shrink-0 text-emerald-600" />
+            <span className="font-medium">{getTranslation('thanks.security')}</span>
+          </div>
+          <div className="flex items-center justify-center text-xs tilda-font text-emerald-600">
+            <div className="w-2 h-2 bg-emerald-400 rounded-full mr-2 animate-pulse"></div>
+            {getTranslation('thanks.verified')}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 // Компонент для встроенного видео
 const EmbeddedVideo = ({ videoUrl, className = "", autoplay = false }) => {
@@ -169,6 +515,7 @@ export default function ProjectDetailPage() {
   const [selectedParticipant, setSelectedParticipant] = useState(null);
   const [currentLang, setCurrentLang] = useState('ru');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isBottomExpanded, setIsBottomExpanded] = useState(false);
 
   useEffect(() => {
     if (lang && ['kz', 'ru', 'en'].includes(lang)) {
@@ -340,6 +687,12 @@ export default function ProjectDetailPage() {
     setShowApplicationModal(true);
   };
 
+  // Подсчет общего количества проголосовавших пользователей
+  const getTotalVoters = () => {
+    if (!project || !project.participants) return 0;
+    return project.participants.reduce((total, participant) => total + (participant.votes_count || 0), 0);
+  };
+
   if (loading) {
     return (
       <>
@@ -392,6 +745,7 @@ export default function ProjectDetailPage() {
   const startDate = new Date(project.start_date);
   const endDate = new Date(project.end_date);
   const isActive = project.status === 'active' && now >= startDate && now <= endDate;
+  const totalVoters = getTotalVoters();
 
   return (
     <>
@@ -440,6 +794,11 @@ export default function ProjectDetailPage() {
                 </div>
               </div>
             </div>
+
+            {/* Благодарность верифицированным пользователям для десктопа */}
+            {project.project_type === 'voting' && totalVoters > 0 && (
+              <VerifiedVotersThankYou totalVoters={totalVoters} currentLang={currentLang} />
+            )}
 
             {/* Компактная информация о датах */}
             <div className="grid grid-cols-2 gap-3">
@@ -505,7 +864,6 @@ export default function ProjectDetailPage() {
                         alt={image.description || `Фото ${index + 1}`}
                         className="w-full h-20 object-cover group-hover:scale-105 transition-transform duration-200"
                       />
-                      {/* Более заметная нумерация фото */}
                       <div className="absolute top-2 left-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-sm font-bold px-2 py-1 rounded-full shadow-lg border-2 border-white tilda-font min-w-[24px] text-center">
                         {index + 1}
                       </div>
@@ -552,11 +910,9 @@ export default function ProjectDetailPage() {
                             </div>
                           )}
 
-                          {/* Индикатор места */}
                           <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2">
                             <div className={`px-2 py-0.5 rounded-full text-xs font-bold shadow-lg border-2 border-white ${
                               (() => {
-                                // Сортируем участников по количеству голосов для определения места
                                 const sortedParticipants = [...project.participants].sort((a, b) => b.votes_count - a.votes_count);
                                 const place = sortedParticipants.findIndex(p => p.id === participant.id) + 1;
 
@@ -660,6 +1016,18 @@ export default function ProjectDetailPage() {
           </div>
         </div>
 
+        {/* Фиксированный блок для мобильных устройств */}
+        {project.project_type === 'voting' && (
+          <FixedBottomVotingInfo
+            endDate={project.end_date}
+            totalVoters={totalVoters}
+            currentLang={currentLang}
+            isActive={isActive}
+            onToggleExpand={() => setIsBottomExpanded(!isBottomExpanded)}
+            isExpanded={isBottomExpanded}
+          />
+        )}
+
         {/* Модалки */}
         {showVotingModal && (
           <VotingModal
@@ -669,7 +1037,6 @@ export default function ProjectDetailPage() {
               setShowVotingModal(false);
               setSelectedParticipant(null);
               if (success) {
-                // Обновляем данные проекта
                 const fetchProjectDetails = async () => {
                   try {
                     const url = PROJECTS_API.DETAILS(id);
@@ -689,7 +1056,6 @@ export default function ProjectDetailPage() {
           />
         )}
 
-        {/* Модалка детального просмотра участника */}
         {showParticipantModal && selectedParticipant && (
           <ParticipantDetailModal
             participant={selectedParticipant}
@@ -705,7 +1071,6 @@ export default function ProjectDetailPage() {
           />
         )}
 
-        {/* Модалка авторизации */}
         {showAuthModal && (
           <AuthRequiredModal
             onClose={() => setShowAuthModal(false)}
@@ -713,7 +1078,6 @@ export default function ProjectDetailPage() {
           />
         )}
 
-        {/* Модалка заявок */}
         {showApplicationModal && (
           <ApplicationModal
             projectId={project.id}
