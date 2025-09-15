@@ -673,7 +673,6 @@ export default function ResumeDetailPage() {
                 </h2>
                 <button
                   onClick={() => router.push(`/${currentLang}/profile/resumes/${resume.id}/edit/skills`)}
-                  onClick={() => router.push(`/${currentLang}/profile/resumes/${resume.id}/edit/skills`)}
                   className="flex items-center px-3 py-2 text-orange-600 hover:text-orange-700 hover:bg-orange-50 rounded-lg transition-colors tilda-font"
                 >
                   <Edit3 size={16} className="mr-1" />
