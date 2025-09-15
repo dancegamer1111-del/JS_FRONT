@@ -83,6 +83,52 @@ export const PROJECTS_API = {
 };
 
 
+export const RESUMES_API = {
+  // Основные операции с резюме
+  LIST: `${API_BASE_URL}/api/v2/resumes`,
+  MY: `${API_BASE_URL}/api/v2/resumes/my`,
+  CREATE: `${API_BASE_URL}/api/v2/resumes/`,
+  DETAILS: (id) => `${API_BASE_URL}/api/v2/resumes/${id}`,
+  UPDATE: (id) => `${API_BASE_URL}/api/v2/resumes/${id}`,
+  DELETE: (id) => `${API_BASE_URL}/api/v2/resumes/${id}`,
+  FULL_CREATE: `${API_BASE_URL}/api/v2/resumes/full`,
+  PROFESSIONS: '/api/v2/professions',
+
+  // Публикация
+  PUBLISH: (id) => `${API_BASE_URL}/api/v2/resumes/${id}/publish`,
+  UNPUBLISH: (id) => `${API_BASE_URL}/api/v2/resumes/${id}/unpublish`,
+
+  // Активация/деактивация
+  ACTIVATE: (id) => `${API_BASE_URL}/api/v2/resumes/${id}/activate`,
+  DEACTIVATE: (id) => `${API_BASE_URL}/api/v2/resumes/${id}/deactivate`,
+
+  // Поиск и статистика
+  SEARCH: `${API_BASE_URL}/api/v2/resumes/search`,
+  STATS: `${API_BASE_URL}/api/v2/resumes/stats/user`,
+
+  // Справочники
+  PROFESSIONS: `${API_BASE_URL}/api/v2/resumes/professions`,
+  REGIONS: `${API_BASE_URL}/api/v2/resumes/regions`,
+  CITIES: `${API_BASE_URL}/api/v2/resumes/cities`,
+  SKILLS: `${API_BASE_URL}/api/v2/resumes/skills`,
+
+  // Образование
+  ADD_EDUCATION: (resumeId) => `${API_BASE_URL}/api/v2/resumes/${resumeId}/education`,
+  GET_EDUCATION: (resumeId) => `${API_BASE_URL}/api/v2/resumes/${resumeId}/education`,
+  UPDATE_EDUCATION: (educationId) => `${API_BASE_URL}/api/v2/resumes/education/${educationId}`,
+  DELETE_EDUCATION: (educationId) => `${API_BASE_URL}/api/v2/resumes/education/${educationId}`,
+
+  // Опыт работы
+  ADD_EXPERIENCE: (resumeId) => `${API_BASE_URL}/api/v2/resumes/${resumeId}/work-experience`,
+  GET_EXPERIENCE: (resumeId) => `${API_BASE_URL}/api/v2/resumes/${resumeId}/work-experience`,
+  UPDATE_EXPERIENCE: (experienceId) => `${API_BASE_URL}/api/v2/resumes/work-experience/${experienceId}`,
+  DELETE_EXPERIENCE: (experienceId) => `${API_BASE_URL}/api/v2/resumes/work-experience/${experienceId}`,
+
+  // Навыки
+  ADD_SKILL: (resumeId) => `${API_BASE_URL}/api/v2/resumes/${resumeId}/skills`,
+  GET_SKILLS: (resumeId) => `${API_BASE_URL}/api/v2/resumes/${resumeId}/skills`,
+  DELETE_SKILL: (skillId) => `${API_BASE_URL}/api/v2/resumes/skills/${skillId}`,
+};
 
 // Функция для добавления параметров запроса
 export const appendQueryParams = (url, params) => {

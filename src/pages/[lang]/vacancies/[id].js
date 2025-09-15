@@ -13,23 +13,24 @@ import {
   Briefcase,
   Users,
   DollarSign,
-  AlertTriangle
-} from 'react-feather';
+  AlertTriangle,
+  ArrowRight,
+  FileText,
+  CheckCircle,
+  Building
+} from 'lucide-react';
 
 export default function VacancyDetailPage() {
   const router = useRouter();
   const { id, lang } = router.query;
+
+  // Извлекаем язык из URL точно как в других компонентах
+  const currentLang = router.query.lang || 'ru';
+
   const [vacancy, setVacancy] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showModal, setShowModal] = useState(false);
-  const [currentLang, setCurrentLang] = useState('ru');
-
-  useEffect(() => {
-    if (lang && ['kz', 'ru', 'en'].includes(lang)) {
-      setCurrentLang(lang);
-    }
-  }, [lang]);
 
   useEffect(() => {
     const fetchVacancyDetails = async () => {
@@ -70,56 +71,64 @@ export default function VacancyDetailPage() {
     return vacancy[`${fieldName}_${currentLang}`] || vacancy[`${fieldName}_ru`] || vacancy[`${fieldName}_kz`] || vacancy[fieldName] || '';
   };
 
-  const getTranslation = (key, fallbackText = '') => {
-    const translations = {
-      'ru': {
-        'vacancy.title': 'Детали вакансии',
-        'vacancy.backToList': 'Вернуться к списку',
-        'vacancy.notFound': 'Вакансия не найдена',
-        'vacancy.responsibilities': 'Должностные обязанности',
-        'vacancy.requirements': 'Требования',
-        'vacancy.apply': 'Подать заявку',
-        'vacancy.posted': 'Опубликовано',
-        'vacancy.deadline': 'Срок подачи',
-        'vacancy.loading': 'Загрузка данных о вакансии...',
-        'vacancy.errorTitle': 'Ошибка загрузки',
-        'vacancy.location': 'Местоположение',
-      },
-      'kz': {
-        'vacancy.title': 'Бос жұмыс орны туралы мәліметтер',
-        'vacancy.backToList': 'Тізімге оралу',
-        'vacancy.notFound': 'Бос жұмыс орны табылмады',
-        'vacancy.responsibilities': 'Лауазымдық міндеттер',
-        'vacancy.requirements': 'Талаптар',
-        'vacancy.apply': 'Өтінім жіберу',
-        'vacancy.posted': 'Жарияланған күні',
-        'vacancy.deadline': 'Өтінім беру мерзімі',
-        'vacancy.loading': 'Вакансия туралы деректер жүктелуде...',
-        'vacancy.errorTitle': 'Жүктеу қатесі',
-        'vacancy.location': 'Орналасқан жері',
-      }
-    };
-
-    return translations[currentLang]?.[key] || translations['ru']?.[key] || fallbackText || key;
+  // Переводы прямо в файле
+  const translations = {
+    'ru': {
+      title: 'Детали вакансии',
+      backToList: 'Назад к списку',
+      notFound: 'Вакансия не найдена',
+      responsibilities: 'Должностные обязанности',
+      requirements: 'Требования',
+      apply: 'Подать заявку',
+      posted: 'Опубликовано',
+      deadline: 'Срок подачи',
+      loading: 'Загрузка...',
+      errorTitle: 'Ошибка загрузки',
+      location: 'Местоположение',
+      company: 'Компания',
+      applyNow: 'Подать заявку',
+      backToVacancies: 'К вакансиям',
+      aboutVacancy: 'О вакансии',
+      keyInfo: 'Ключевая информация'
+    },
+    'kz': {
+      title: 'Вакансия мәліметтері',
+      backToList: 'Тізімге қайту',
+      notFound: 'Вакансия табылмады',
+      responsibilities: 'Лауазымдық міндеттер',
+      requirements: 'Талаптар',
+      apply: 'Өтінім жіберу',
+      posted: 'Жарияланды',
+      deadline: 'Соңғы мерзім',
+      loading: 'Жүктелуде...',
+      errorTitle: 'Жүктеу қатесі',
+      location: 'Орналасқан жері',
+      company: 'Компания',
+      applyNow: 'Өтінім жіберу',
+      backToVacancies: 'Вакансияларға',
+      aboutVacancy: 'Вакансия туралы',
+      keyInfo: 'Негізгі ақпарат'
+    }
   };
 
-  // Функции для получения цвета меток
+  const t = translations[currentLang] || translations['ru'];
+
   const getEmploymentTypeColor = (type) => {
     switch (type?.toLowerCase()) {
       case 'полная занятость':
       case 'толық жұмыс':
-        return 'bg-teal-100 text-teal-700';
+        return 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white';
       case 'частичная занятость':
       case 'ішінара жұмыспен қамту':
-        return 'bg-purple-100 text-purple-700';
+        return 'bg-gradient-to-r from-purple-500 to-indigo-600 text-white';
       case 'проектная работа':
       case 'жобалық жұмыс':
-        return 'bg-blue-100 text-blue-700';
+        return 'bg-gradient-to-r from-blue-500 to-cyan-600 text-white';
       case 'стажировка':
       case 'тәжірибеден өту':
-        return 'bg-orange-100 text-orange-700';
+        return 'bg-gradient-to-r from-orange-500 to-amber-600 text-white';
       default:
-        return 'bg-gray-100 text-gray-700';
+        return 'bg-gradient-to-r from-gray-400 to-gray-600 text-white';
     }
   };
 
@@ -127,243 +136,313 @@ export default function VacancyDetailPage() {
     switch (type?.toLowerCase()) {
       case 'удаленная работа':
       case 'қашықтықтан жұмыс':
-        return 'bg-indigo-100 text-indigo-700';
+        return 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white';
       case 'офис':
-        return 'bg-cyan-100 text-cyan-700';
+        return 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white';
       case 'гибридный формат':
       case 'гибридті формат':
-        return 'bg-violet-100 text-violet-700';
+        return 'bg-gradient-to-r from-violet-500 to-purple-600 text-white';
       default:
-        return 'bg-gray-100 text-gray-700';
+        return 'bg-gradient-to-r from-gray-400 to-gray-600 text-white';
     }
   };
 
   if (loading) {
     return (
-      <Layout>
-        <Head>
-          <title>{getTranslation('vacancy.loading', 'Загрузка...')}</title>
-          <meta name="description" content="Загрузка детали вакансии" />
-        </Head>
-        <HeaderBack
-          title={getTranslation('vacancy.title')}
-          onBack={() => router.back()}
-        />
-        <div className="container mx-auto py-12 px-4">
-          <div className="h-full flex justify-center items-center p-8 bg-white rounded-xl shadow-md">
-            <div className="text-center">
-              <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-teal-500 mb-4"></div>
-              <p className="text-gray-600 font-medium">{getTranslation('vacancy.loading', 'Загрузка...')}</p>
+      <>
+        <style jsx global>{`
+          @font-face {
+            font-family: 'TildaSans';
+            src: url('/fonts/tilda/TildaSans-Regular.ttf') format('truetype');
+            font-weight: 400;
+            font-style: normal;
+          }
+          @font-face {
+            font-family: 'TildaSans';
+            src: url('/fonts/tilda/TildaSans-Medium.ttf') format('truetype');
+            font-weight: 500;
+            font-style: normal;
+          }
+          @font-face {
+            font-family: 'TildaSans';
+            src: url('/fonts/tilda/TildaSans-Semibold.ttf') format('truetype');
+            font-weight: 600;
+            font-style: normal;
+          }
+          @font-face {
+            font-family: 'TildaSans';
+            src: url('/fonts/tilda/TildaSans-Bold.ttf') format('truetype');
+            font-weight: 700;
+            font-style: normal;
+          }
+
+          .tilda-font {
+            font-family: 'TildaSans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+          }
+        `}</style>
+
+        <Layout>
+          <Head><title>{t.loading}</title></Head>
+          <HeaderBack title={t.title} onBack={() => router.back()} />
+          <div className="min-h-screen bg-gray-50">
+            <div className="max-w-4xl mx-auto p-4">
+              <div className="text-center py-16">
+                <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-purple-500 border-t-transparent mb-4"></div>
+                <p className="text-lg text-gray-600 tilda-font">{t.loading}</p>
+              </div>
             </div>
           </div>
-        </div>
-      </Layout>
+        </Layout>
+      </>
     );
   }
 
-  if (error) {
+  if (error || !vacancy) {
     return (
-      <Layout>
-        <Head>
-          <title>{getTranslation('vacancy.errorTitle')}</title>
-          <meta name="description" content="Ошибка загрузки вакансии" />
-        </Head>
-        <HeaderBack
-          title={getTranslation('vacancy.title')}
-          onBack={() => router.back()}
-        />
-        <div className="container mx-auto py-12 px-4">
-          <div className="p-8 bg-white rounded-xl shadow-md">
-            <div className="bg-red-50 border-l-4 border-red-400 text-red-700 px-6 py-4 rounded-md mb-6">
-              <div className="flex items-center">
-                <AlertTriangle size={20} className="text-red-500 mr-3" />
-                <p className="font-semibold text-lg">{getTranslation('vacancy.errorTitle')}</p>
-              </div>
-              <p className="mt-2">{error}</p>
-            </div>
-            <button
-              onClick={() => router.back()}
-              className="inline-flex items-center px-6 py-3 bg-white border border-gray-300 rounded-lg shadow-sm text-teal-600 font-medium hover:bg-gray-50 transition-colors"
-            >
-              {getTranslation('vacancy.backToList')}
-            </button>
-          </div>
-        </div>
-      </Layout>
-    );
-  }
+      <>
+        <style jsx global>{`
+          .tilda-font {
+            font-family: 'TildaSans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+          }
+        `}</style>
 
-  if (!vacancy) {
-    return (
-      <Layout>
-        <Head>
-          <title>{getTranslation('vacancy.notFound')}</title>
-          <meta name="description" content="Вакансия не найдена" />
-        </Head>
-        <HeaderBack
-          title={getTranslation('vacancy.title')}
-          onBack={() => router.back()}
-        />
-        <div className="container mx-auto py-12 px-4">
-          <div className="h-full flex justify-center items-center p-8 bg-white rounded-xl shadow-md">
-            <div className="text-center">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-100 text-gray-400 mb-6">
-                <Briefcase size={32} />
+        <Layout>
+          <Head><title>{t.errorTitle}</title></Head>
+          <HeaderBack title={t.title} onBack={() => router.back()} />
+          <div className="min-h-screen bg-gray-50">
+            <div className="max-w-4xl mx-auto p-4">
+              <div className="text-center py-16">
+                <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <AlertTriangle size={24} className="text-red-500" />
+                </div>
+                <h2 className="text-xl font-bold text-gray-900 mb-4 tilda-font">{error || t.notFound}</h2>
+                <button
+                  onClick={() => router.back()}
+                  className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium shadow-sm hover:shadow-md transition-all duration-200 tilda-font"
+                >
+                  {t.backToList}
+                </button>
               </div>
-              <h1 className="text-xl font-medium text-gray-700 mb-6">
-                {getTranslation('vacancy.notFound')}
-              </h1>
-              <button
-                onClick={() => router.back()}
-                className="inline-flex items-center px-6 py-3 bg-white border border-gray-300 rounded-lg shadow-sm text-teal-600 font-medium hover:bg-gray-50 transition-colors"
-              >
-                {getTranslation('vacancy.backToList')}
-              </button>
             </div>
           </div>
-        </div>
-      </Layout>
+        </Layout>
+      </>
     );
   }
 
   return (
-    <Layout>
-      <Head>
-        <title>{getLocalizedField('title')} | {getTranslation('vacancy.title')}</title>
-        <meta name="description" content={getLocalizedField('description')?.substring(0, 160) || getLocalizedField('title')} />
-      </Head>
+    <>
+      <style jsx global>{`
+        @font-face {
+          font-family: 'TildaSans';
+          src: url('/fonts/tilda/TildaSans-Regular.ttf') format('truetype');
+          font-weight: 400;
+          font-style: normal;
+        }
+        @font-face {
+          font-family: 'TildaSans';
+          src: url('/fonts/tilda/TildaSans-Medium.ttf') format('truetype');
+          font-weight: 500;
+          font-style: normal;
+        }
+        @font-face {
+          font-family: 'TildaSans';
+          src: url('/fonts/tilda/TildaSans-Semibold.ttf') format('truetype');
+          font-weight: 600;
+          font-style: normal;
+        }
+        @font-face {
+          font-family: 'TildaSans';
+          src: url('/fonts/tilda/TildaSans-Bold.ttf') format('truetype');
+          font-weight: 700;
+          font-style: normal;
+        }
 
-      <HeaderBack
-        title={getTranslation('vacancy.title')}
-        onBack={() => router.back()}
-      />
+        .tilda-font {
+          font-family: 'TildaSans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
 
-      <div className="container mx-auto py-8 px-4">
-        <div className="bg-white rounded-xl shadow-md p-6 md:p-8">
-          <h1 className="text-3xl font-bold text-gray-800 mb-2 flex items-center">
-            {getLocalizedField('title')}
-          </h1>
+        .info-card {
+          transition: all 0.2s ease;
+        }
 
-          {/* Теги */}
-          <div className="flex flex-wrap gap-3 my-6">
-            {vacancy.employment_type && (
-              <span className={`inline-flex items-center rounded-full px-3 py-1 text-sm font-medium ${getEmploymentTypeColor(vacancy.employment_type)}`}>
-                <Users size={14} className="mr-1.5" />
-                {vacancy.employment_type}
-              </span>
-            )}
-            {vacancy.work_type && (
-              <span className={`inline-flex items-center rounded-full px-3 py-1 text-sm font-medium ${getWorkTypeColor(vacancy.work_type)}`}>
-                <Briefcase size={14} className="mr-1.5" />
-                {vacancy.work_type}
-              </span>
-            )}
-            {vacancy.salary && (
-              <span className="inline-flex items-center bg-green-100 text-green-700 rounded-full px-3 py-1 text-sm font-medium">
-                <DollarSign size={14} className="mr-1.5" />
-                {vacancy.salary}
-              </span>
-            )}
-          </div>
+        .info-card:hover {
+          transform: translateY(-1px);
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+      `}</style>
 
-          {/* Местоположение и срок подачи */}
-          <div className="mb-6 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4 text-sm">
-            {getLocalizedField('location') && (
-              <div className="text-gray-600 flex items-center">
-                <MapPin size={16} className="mr-2 text-gray-400 flex-shrink-0" />
-                <span>{getLocalizedField('location')}</span>
-              </div>
-            )}
-            {vacancy.deadline && (
-              <div className="text-gray-600 flex items-center">
-                <Calendar size={16} className="mr-2 text-gray-400 flex-shrink-0" />
-                <span>
-                  {getTranslation('vacancy.deadline')}: <span className="font-medium text-gray-700">{formatDate(vacancy.deadline, currentLang)}</span>
-                </span>
-              </div>
-            )}
-          </div>
+      <Layout>
+        <Head>
+          <title>{getLocalizedField('title')} | {t.title}</title>
+          <meta name="description" content={getLocalizedField('description')?.substring(0, 160) || getLocalizedField('title')} />
+        </Head>
 
-          {/* Описание/Обязанности */}
-          {getLocalizedField('description') && (
-            <div className="mb-8">
-              <h2 className="text-xl font-semibold mb-3 text-gray-800">{getTranslation('vacancy.responsibilities')}</h2>
-              <div className="prose prose-sm sm:prose max-w-none text-gray-700">
-                <div dangerouslySetInnerHTML={{ __html: getLocalizedField('description').replace(/\n/g, '<br />') }} />
+        <HeaderBack title={t.title} onBack={() => router.back()} />
+
+        <div className="min-h-screen bg-gray-50">
+          <div className="max-w-4xl mx-auto p-4 space-y-4">
+
+            {/* Компактный заголовок */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+              <div className="p-4 sm:p-6">
+                <div className="flex flex-wrap gap-2 mb-4">
+                  {vacancy.employment_type && (
+                    <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${getEmploymentTypeColor(vacancy.employment_type)}`}>
+                      <Users size={12} className="mr-1" />
+                      {vacancy.employment_type}
+                    </span>
+                  )}
+
+                  {vacancy.work_type && (
+                    <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${getWorkTypeColor(vacancy.work_type)}`}>
+                      <Briefcase size={12} className="mr-1" />
+                      {vacancy.work_type}
+                    </span>
+                  )}
+
+                  {vacancy.salary && (
+                    <span className="inline-flex items-center bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-full px-3 py-1 text-xs font-semibold">
+                      <DollarSign size={12} className="mr-1" />
+                      {vacancy.salary}
+                    </span>
+                  )}
+                </div>
+
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4 tilda-font leading-tight">
+                  {getLocalizedField('title')}
+                </h1>
+
+                <div className="flex flex-col sm:flex-row sm:items-center gap-4 text-sm text-gray-600">
+                  {getLocalizedField('location') && (
+                    <div className="flex items-center">
+                      <MapPin size={16} className="mr-2 text-purple-500" />
+                      <span className="tilda-font">{getLocalizedField('location')}</span>
+                    </div>
+                  )}
+
+                  {vacancy.company && (
+                    <div className="flex items-center">
+                      <Building size={16} className="mr-2 text-blue-500" />
+                      <span className="tilda-font">{vacancy.company}</span>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
-          )}
 
-          {/* Требования */}
-          {getLocalizedField('requirements') && (
-            <div className="mb-8">
-              <h2 className="text-xl font-semibold mb-3 text-gray-800">{getTranslation('vacancy.requirements')}</h2>
-              <div className="prose prose-sm sm:prose max-w-none text-gray-700">
-                 <div dangerouslySetInnerHTML={{ __html: getLocalizedField('requirements').replace(/\n/g, '<br />') }} />
+            {/* Ключевая информация */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100 info-card">
+                <div className="flex items-center text-gray-500 mb-2">
+                  <Calendar size={16} className="mr-2 text-green-500" />
+                  <span className="text-sm font-medium tilda-font">{t.posted}</span>
+                </div>
+                <div className="text-sm font-bold text-gray-900 tilda-font">
+                  {formatDate(vacancy.created_at, currentLang)}
+                </div>
               </div>
+
+              {vacancy.deadline && (
+                <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100 info-card">
+                  <div className="flex items-center text-gray-500 mb-2">
+                    <Clock size={16} className="mr-2 text-orange-500" />
+                    <span className="text-sm font-medium tilda-font">{t.deadline}</span>
+                  </div>
+                  <div className="text-sm font-bold text-gray-900 tilda-font">
+                    {formatDate(vacancy.deadline, currentLang)}
+                  </div>
+                </div>
+              )}
             </div>
-          )}
 
-          {/* Кнопки */}
-          <div className="mt-8 flex flex-col sm:flex-row gap-4">
-            <button
-              onClick={() => setShowModal(true)}
-              className="inline-flex items-center justify-center px-6 py-3 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-lg shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-opacity-50"
-            >
-              {getTranslation('vacancy.apply')}
-            </button>
-            <button
-              onClick={() => router.back()}
-              className="inline-flex items-center justify-center px-6 py-3 bg-white border border-gray-300 rounded-lg shadow-sm text-gray-700 font-medium hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-opacity-50"
-            >
-              {getTranslation('vacancy.backToList')}
-            </button>
-          </div>
+            {/* Описание/Обязанности */}
+            {getLocalizedField('description') && (
+              <div className="bg-white rounded-xl p-4 sm:p-6 shadow-sm border border-gray-100">
+                <h2 className="text-lg font-bold text-gray-900 mb-3 tilda-font flex items-center">
+                  <FileText size={20} className="mr-2 text-purple-500" />
+                  {t.responsibilities}
+                </h2>
+                <div className="text-gray-700 leading-relaxed tilda-font text-sm">
+                  <div dangerouslySetInnerHTML={{
+                    __html: getLocalizedField('description').replace(/\n/g, '<br />')
+                  }} />
+                </div>
+              </div>
+            )}
 
-          {/* Дата публикации */}
-          <div className="mt-8 pt-6 border-t border-gray-200 text-sm text-gray-500 flex items-center">
-            <Clock size={14} className="mr-1.5" />
-            {getTranslation('vacancy.posted')}: {formatDate(vacancy.created_at, currentLang)}
+            {/* Требования */}
+            {getLocalizedField('requirements') && (
+              <div className="bg-white rounded-xl p-4 sm:p-6 shadow-sm border border-gray-100">
+                <h2 className="text-lg font-bold text-gray-900 mb-3 tilda-font flex items-center">
+                  <CheckCircle size={20} className="mr-2 text-green-500" />
+                  {t.requirements}
+                </h2>
+                <div className="text-gray-700 leading-relaxed tilda-font text-sm">
+                  <div dangerouslySetInnerHTML={{
+                    __html: getLocalizedField('requirements').replace(/\n/g, '<br />')
+                  }} />
+                </div>
+              </div>
+            )}
+
+            {/* Действия */}
+            <div className="flex flex-col sm:flex-row gap-3 pt-2">
+              <button
+                onClick={() => setShowModal(true)}
+                className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold py-4 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 tilda-font text-lg transform hover:-translate-y-1"
+              >
+                {t.applyNow}
+                <ArrowRight size={18} className="inline ml-2" />
+              </button>
+
+              <button
+                onClick={() => router.back()}
+                className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-4 px-6 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 tilda-font sm:w-auto"
+              >
+                {t.backToVacancies}
+              </button>
+            </div>
           </div>
         </div>
-      </div>
 
-      {showModal && (
-        <ApplicationModal
-          vacancyId={vacancy.id}
-          vacancyTitle={getLocalizedField('title')}
-          onClose={() => setShowModal(false)}
-          getTranslation={(key) => {
-            const translations = {
-              'vacancies.applyFor': currentLang === 'kz' ? 'Өтінім жіберу' : 'Подать заявку на',
-              'vacancies.lastName': currentLang === 'kz' ? 'Тегі' : 'Фамилия',
-              'vacancies.firstName': currentLang === 'kz' ? 'Аты' : 'Имя',
-              'vacancies.email': currentLang === 'kz' ? 'Электрондық пошта' : 'Электронная почта',
-              'vacancies.phone': currentLang === 'kz' ? 'Телефон' : 'Телефон',
-              'vacancies.coverLetter': currentLang === 'kz' ? 'Ілеспе хат' : 'Сопроводительное письмо',
-              'vacancies.resume': currentLang === 'kz' ? 'Түйіндеме' : 'Резюме',
-              'vacancies.cancel': currentLang === 'kz' ? 'Болдырмау' : 'Отмена',
-              'vacancies.submit': currentLang === 'kz' ? 'Жіберу' : 'Отправить',
-              'vacancies.sending': currentLang === 'kz' ? 'Жіберілуде...' : 'Отправка...',
-              'vacancies.applicationSent': currentLang === 'kz' ? 'Өтінім жіберілді' : 'Заявка отправлена',
-              'vacancies.thankYouForApplication': currentLang === 'kz'
-                ? 'Өтініміңіз үшін рахмет! Біз сізбен жақын арада хабарласамыз.'
-                : 'Спасибо за вашу заявку! Мы свяжемся с вами в ближайшее время.',
-              'vacancies.close': currentLang === 'kz' ? 'Жабу' : 'Закрыть',
-              'vacancies.fillRequiredFields': currentLang === 'kz'
-                ? 'Барлық міндетті өрістерді толтырыңыз'
-                : 'Пожалуйста, заполните все обязательные поля',
-              'vacancies.applicationError': currentLang === 'kz'
-                ? 'Өтінім жіберу кезінде қате орын алды'
-                : 'Произошла ошибка при отправке заявки',
-              'vacancies.invalidFileFormat': currentLang === 'kz'
-                ? 'Файл пішіміне қолдау көрсетілмейді. Тек .doc, .docx немесе .pdf пішімдеріне рұқсат етіледі.'
-                : 'Неподдерживаемый формат файла. Разрешены только форматы .doc, .docx или .pdf'
-            };
-            return translations[key] || key;
-          }}
-        />
-      )}
-    </Layout>
+        {showModal && (
+          <ApplicationModal
+            vacancyId={vacancy.id}
+            vacancyTitle={getLocalizedField('title')}
+            onClose={() => setShowModal(false)}
+            getTranslation={(key) => {
+              const modalTranslations = {
+                'vacancies.applyFor': currentLang === 'kz' ? 'Өтінім жіберу' : 'Подать заявку на',
+                'vacancies.lastName': currentLang === 'kz' ? 'Тегі' : 'Фамилия',
+                'vacancies.firstName': currentLang === 'kz' ? 'Аты' : 'Имя',
+                'vacancies.email': currentLang === 'kz' ? 'Электрондық пошта' : 'Электронная почта',
+                'vacancies.phone': currentLang === 'kz' ? 'Телефон' : 'Телефон',
+                'vacancies.coverLetter': currentLang === 'kz' ? 'Ілеспе хат' : 'Сопроводительное письмо',
+                'vacancies.resume': currentLang === 'kz' ? 'Түйіндеме' : 'Резюме',
+                'vacancies.cancel': currentLang === 'kz' ? 'Болдырмау' : 'Отмена',
+                'vacancies.submit': currentLang === 'kz' ? 'Жіберу' : 'Отправить',
+                'vacancies.sending': currentLang === 'kz' ? 'Жіберілуде...' : 'Отправка...',
+                'vacancies.applicationSent': currentLang === 'kz' ? 'Өтінім жіберілді' : 'Заявка отправлена',
+                'vacancies.thankYouForApplication': currentLang === 'kz'
+                  ? 'Өтініміңіз үшін рахмет! Біз сізбен жақын арада хабарласамыз.'
+                  : 'Спасибо за вашу заявку! Мы свяжемся с вами в ближайшее время.',
+                'vacancies.close': currentLang === 'kz' ? 'Жабу' : 'Закрыть',
+                'vacancies.fillRequiredFields': currentLang === 'kz'
+                  ? 'Барлық міндетті өрістерді толтырыңыз'
+                  : 'Пожалуйста, заполните все обязательные поля',
+                'vacancies.applicationError': currentLang === 'kz'
+                  ? 'Өтінім жіберу кезінде қате орын алды'
+                  : 'Произошла ошибка при отправке заявки',
+                'vacancies.invalidFileFormat': currentLang === 'kz'
+                  ? 'Файл пішіміне қолдау көрсетілмейді. Тек .doc, .docx немесе .pdf пішімдеріне рұқсат етіледі.'
+                  : 'Неподдерживаемый формат файла. Разрешены только форматы .doc, .docx или .pdf'
+              };
+              return modalTranslations[key] || key;
+            }}
+          />
+        )}
+      </Layout>
+    </>
   );
 }

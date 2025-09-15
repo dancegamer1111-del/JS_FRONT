@@ -14,6 +14,7 @@ import {
   HelpCircle,
   Globe,
   LogIn,
+  FileText,
 } from 'react-feather';
 
 // Импортируем модальное окно и переводы
@@ -63,7 +64,8 @@ const Navigation = () => {
   const navItems = [
     { path: `${langPrefix}/home`, label: t.navigation?.home || 'Главная', icon: <Home size={18} className="mr-2" />, isComingSoon: false },
     { path: `${langPrefix}/projects`, label: t.navigation?.projects || 'Проекты', icon: <Users size={18} className="mr-2" />, isComingSoon: false },
-    { path: `${langPrefix}/vacancies`, label: t.navigation?.vacancies || 'Вакансии', icon: <Briefcase size={18} className="mr-2" />, isComingSoon: true },
+    { path: `${langPrefix}/vacancies`, label: t.navigation?.vacancies || 'Вакансии', icon: <Briefcase size={18} className="mr-2" />, isComingSoon: false  },
+    { path: `${langPrefix}/resume/my_resumes`, label: t.navigation?.resumes || 'Мои резюме', icon: <FileText size={18} className="mr-2" />, requiresAuth: true, isComingSoon: false },
     { path: `${langPrefix}/news`, label: t.navigation?.news || 'Новости', icon: <HelpCircle size={18} className="mr-2" />, isComingSoon: true },
     { path: `${langPrefix}/events`, label: t.navigation?.events || 'Календарь событий', icon: <Award size={18} className="mr-2" />, requiresAuth: true, isComingSoon: true },
     { path: `${langPrefix}/courses`, label: t.navigation?.courses || 'Курсы', icon: <Monitor size={18} className="mr-2" />, requiresAuth: true, isComingSoon: true },

@@ -6,8 +6,11 @@ import Head from 'next/head';
 const translations = {
   kz: {
     title: 'Тіркелу',
+    chooseType: 'Тіркелу түрін таңдаңыз:',
     individual: 'Жеке тұлға',
     organization: 'Ұйым',
+    individualTitle: 'Жеке тұлға ретінде тіркелу',
+    organizationTitle: 'Ұйым ретінде тіркелу',
 
     // Individual fields
     fullName: 'Толық аты-жөні:',
@@ -23,12 +26,16 @@ const translations = {
 
     registerButton: 'Тіркелу',
     loadingText: 'Күте тұрыңыз...',
-    backButton: 'Артқа'
+    backButton: 'Артқа',
+    changeType: 'Түрін өзгерту'
   },
   ru: {
     title: 'Регистрация',
+    chooseType: 'Выберите тип регистрации:',
     individual: 'Физическое лицо',
     organization: 'Организация',
+    individualTitle: 'Регистрация физического лица',
+    organizationTitle: 'Регистрация организации',
 
     // Individual fields
     fullName: 'ФИО:',
@@ -44,7 +51,8 @@ const translations = {
 
     registerButton: 'Зарегистрироваться',
     loadingText: 'Подождите...',
-    backButton: 'Назад'
+    backButton: 'Назад',
+    changeType: 'Изменить тип'
   }
 };
 
@@ -54,7 +62,7 @@ const Register = () => {
   const currentLang = lang && ['kz', 'ru'].includes(lang) ? lang : 'kz';
   const t = translations[currentLang] || translations.kz;
 
-  const [registrationType, setRegistrationType] = useState('individual'); // По умолчанию физлицо
+  const [registrationType, setRegistrationType] = useState(null); // null, 'individual', 'organization'
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
@@ -122,16 +130,6 @@ const Register = () => {
     if (!email) return true;
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
-  };
-
-  const getAuthHeaders = () => {
-    const token = localStorage.getItem('token');
-    return token ? {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json'
-    } : {
-      'Content-Type': 'application/json'
-    };
   };
 
   const registerIndividual = async () => {
@@ -214,14 +212,8 @@ const Register = () => {
 
       setSuccess(true);
 
-      // Сохраняем токен для автоматической авторизации
-      if (response.data.access_token) {
-        localStorage.setItem('token', response.data.access_token);
-        localStorage.setItem('phoneNumber', digitsOnly);
-      }
-
       setTimeout(() => {
-        router.push(`/${currentLang}/projects`);
+        router.push(`/${currentLang}/login?registered=true&phone=${phone}`);
       }, 2000);
 
     } catch (err) {
@@ -234,14 +226,14 @@ const Register = () => {
 
   // Icons
   const UserIcon = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
       <circle cx="12" cy="7" r="4"></circle>
     </svg>
   );
 
   const BuildingIcon = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/>
       <path d="M6 12h12"/>
       <path d="M6 8h12"/>
@@ -301,21 +293,11 @@ const Register = () => {
             {/* Header */}
             <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-4">
               <div className="flex items-center justify-center text-white mb-2">
-                {registrationType === 'individual' ? (
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                    <circle cx="12" cy="7" r="4"></circle>
-                  </svg>
-                ) : (
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/>
-                    <path d="M6 12h12"/>
-                    <path d="M6 8h12"/>
-                    <path d="M6 16h12"/>
-                  </svg>
-                )}
+                {registrationType === 'individual' ? <UserIcon /> : registrationType === 'organization' ? <BuildingIcon /> : <UserIcon />}
                 <h1 className="ml-2 text-lg font-semibold tilda-font">
-                  {t.title}
+                  {registrationType === 'individual' ? t.individualTitle :
+                   registrationType === 'organization' ? t.organizationTitle :
+                   t.title}
                 </h1>
               </div>
               <p className="text-center text-blue-100 text-sm tilda-font">
@@ -342,38 +324,43 @@ const Register = () => {
 
               {!success && (
                 <>
-                  {/* Tabs */}
-                  <div className="mb-6">
-                    <div className="flex bg-gray-100 rounded-lg p-1">
-                      <button
-                        onClick={() => setRegistrationType('individual')}
-                        className={`flex-1 flex items-center justify-center py-3 px-4 rounded-md transition-all duration-200 tilda-font ${
-                          registrationType === 'individual'
-                            ? 'bg-blue-600 text-white shadow-sm'
-                            : 'bg-white text-gray-700 hover:bg-blue-50 hover:text-blue-600'
-                        }`}
-                      >
-                        <UserIcon />
-                        <span className="ml-2 text-sm font-medium">
-                          {t.individual}
-                        </span>
-                      </button>
+                  {/* Type Selection */}
+                  {!registrationType && (
+                    <div className="space-y-4">
+                      <h2 className="text-center text-lg font-medium text-gray-800 mb-6 tilda-font">
+                        {t.chooseType}
+                      </h2>
+
+                      <div className="space-y-3">
+                        <button
+                          onClick={() => setRegistrationType('individual')}
+                          className="w-full flex items-center justify-center p-4 border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all group"
+                        >
+                          <UserIcon />
+                          <span className="ml-3 text-lg font-medium text-gray-700 group-hover:text-blue-600 tilda-font">
+                            {t.individual}
+                          </span>
+                        </button>
+
+                        <button
+                          onClick={() => setRegistrationType('organization')}
+                          className="w-full flex items-center justify-center p-4 border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all group"
+                        >
+                          <BuildingIcon />
+                          <span className="ml-3 text-lg font-medium text-gray-700 group-hover:text-blue-600 tilda-font">
+                            {t.organization}
+                          </span>
+                        </button>
+                      </div>
 
                       <button
-                        onClick={() => setRegistrationType('organization')}
-                        className={`flex-1 flex items-center justify-center py-3 px-4 rounded-md transition-all duration-200 ml-1 tilda-font ${
-                          registrationType === 'organization'
-                            ? 'bg-blue-600 text-white shadow-sm'
-                            : 'bg-white text-gray-700 hover:bg-blue-50 hover:text-blue-600'
-                        }`}
+                        onClick={() => router.push(`/${currentLang}/login`)}
+                        className="w-full mt-4 text-sm text-gray-600 hover:text-blue-600 tilda-font"
                       >
-                        <BuildingIcon />
-                        <span className="ml-2 text-sm font-medium">
-                          {t.organization}
-                        </span>
+                        {t.backButton}
                       </button>
                     </div>
-                  </div>
+                  )}
 
                   {/* Individual Registration Form */}
                   {registrationType === 'individual' && (
@@ -436,6 +423,15 @@ const Register = () => {
                         }`}
                       >
                         {loading ? t.loadingText : t.registerButton}
+                      </button>
+
+                      {/* Change Type Button */}
+                      <button
+                        onClick={() => setRegistrationType(null)}
+                        className="w-full mt-2 text-sm text-gray-600 hover:text-blue-600 tilda-font"
+                        disabled={loading}
+                      >
+                        {t.changeType}
                       </button>
                     </div>
                   )}
@@ -540,17 +536,17 @@ const Register = () => {
                       >
                         {loading ? t.loadingText : t.registerButton}
                       </button>
+
+                      {/* Change Type Button */}
+                      <button
+                        onClick={() => setRegistrationType(null)}
+                        className="w-full mt-2 text-sm text-gray-600 hover:text-blue-600 tilda-font"
+                        disabled={loading}
+                      >
+                        {t.changeType}
+                      </button>
                     </div>
                   )}
-
-                  {/* Back Button */}
-                  <button
-                    onClick={() => router.push(`/${currentLang}/login`)}
-                    className="w-full mt-4 text-sm text-gray-600 hover:text-blue-600 tilda-font"
-                    disabled={loading}
-                  >
-                    {t.backButton}
-                  </button>
                 </>
               )}
             </div>
