@@ -48,7 +48,7 @@ export const EVENTS_API = {
 // Новая конфигурация для проектов
 export const PROJECTS_API = {
   BASE: `${API_BASE}/api/v2/projects`,
-  LIST: `${API_BASE}/api/v2/projects/`,
+  LIST: `${API_BASE}/api/v2/projects/new`,
   DETAILS: (id) => `${API_BASE}/api/v2/projects/${id}`,
   VOTE: (id) => `${API_BASE}/api/v2/projects/${id}/vote`,
   APPLY: (id) => `${API_BASE}/api/v2/projects/${id}/applications`,

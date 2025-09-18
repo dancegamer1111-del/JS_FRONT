@@ -90,7 +90,8 @@ const FixedBottomVotingInfo = ({ endDate, totalVoters, currentLang, isActive, on
     const timer = setInterval(() => {
       const now = new Date().getTime();
       const end = new Date(endDate).getTime();
-      const difference = end - now;
+      const difference = end - now - 3600000; // Вычитаем 1 час
+
 
       if (difference > 0) {
         const days = Math.floor(difference / (1000 * 60 * 60 * 24));
@@ -253,7 +254,7 @@ const VotingTimer = ({ endDate, currentLang }) => {
     const timer = setInterval(() => {
       const now = new Date().getTime();
       const end = new Date(endDate).getTime();
-      const difference = end - now;
+      const difference = end - now - 3600000; // Вычитаем 1 час
 
       if (difference > 0) {
         const days = Math.floor(difference / (1000 * 60 * 60 * 24));
