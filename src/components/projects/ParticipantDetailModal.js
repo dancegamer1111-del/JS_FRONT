@@ -581,15 +581,20 @@ export default function ParticipantDetailModal({ participant, onClose, onVote, l
                 {getTranslation('participant.close')}
               </button>
 
-              {onVote && (
-                <button
-                  onClick={onVote}
-                  className="flex-1 px-4 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-lg font-semibold transition-all duration-200 tilda-font flex items-center justify-center gap-2 shadow-sm hover:shadow-md"
-                >
-                  <Vote size={18} />
-                  {getTranslation('participant.vote')}
-                </button>
-              )}
+          {onVote && (
+                  <button
+                    onClick={projectStatus === 'completed' ? undefined : onVote}
+                    disabled={projectStatus === 'completed'}
+                    className={`flex-1 px-4 py-3 rounded-lg font-semibold transition-all duration-200 tilda-font flex items-center justify-center gap-2 ${
+                      projectStatus === 'completed'
+                        ? 'bg-gray-400 text-gray-600 cursor-not-allowed'
+                        : 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white shadow-sm hover:shadow-md'
+                    }`}
+                  >
+                    <Vote size={18} />
+                    {getTranslation('participant.vote')}
+                  </button>
+            )}
             </div>
           </div>
         </div>
