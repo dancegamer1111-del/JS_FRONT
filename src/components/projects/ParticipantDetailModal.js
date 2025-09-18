@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, Instagram, Youtube, User, Vote, Trophy, Play, ChevronDown, ChevronUp } from 'lucide-react';
+import { X, Instagram, Youtube, User, Vote, Trophy, Play, ChevronDown, ChevronUp, Crown, Medal, Award } from 'lucide-react';
 
 // Компонент для встроенного видео участника
 const ParticipantVideo = ({ videoUrl, className = "" }) => {
@@ -276,14 +276,17 @@ const CollapsibleDescription = ({ description, lang }) => {
   );
 };
 
-export default function ParticipantDetailModal({ participant, onClose, onVote, lang }) {
+export default function ParticipantDetailModal({ participant, onClose, onVote, lang, allParticipants = [], projectStatus = 'active' }) {
   const [imageError, setImageError] = useState(false);
 
   // Хардкодим переводы
   const translations = {
     'ru': {
       'participant.details': 'О участнике',
-      'participant.votes': 'голосов',
+      'participant.place': 'место',
+      'participant.winner': 'Победитель!',
+      'participant.second': '2 место',
+      'participant.third': '3 место',
       'participant.vote': 'Голосовать',
       'participant.description': 'Описание',
       'participant.video': 'Видео',
@@ -291,11 +294,15 @@ export default function ParticipantDetailModal({ participant, onClose, onVote, l
       'participant.close': 'Закрыть',
       'participant.noDescription': 'Описание не указано',
       'participant.instagram': 'Instagram',
-      'participant.youtube': 'YouTube'
+      'participant.youtube': 'YouTube',
+      'participant.votes': 'голосов'
     },
     'kz': {
       'participant.details': 'Қатысушы туралы',
-      'participant.votes': 'дауыс',
+      'participant.place': 'орын',
+      'participant.winner': 'Жеңімпаз!',
+      'participant.second': '2 орын',
+      'participant.third': '3 орын',
       'participant.vote': 'Дауыс беру',
       'participant.description': 'Сипаттама',
       'participant.video': 'Видео',
@@ -303,7 +310,8 @@ export default function ParticipantDetailModal({ participant, onClose, onVote, l
       'participant.close': 'Жабу',
       'participant.noDescription': 'Сипаттама көрсетілмеген',
       'participant.instagram': 'Instagram',
-      'participant.youtube': 'YouTube'
+      'participant.youtube': 'YouTube',
+      'participant.votes': 'дауыс'
     }
   };
 
@@ -319,7 +327,80 @@ export default function ParticipantDetailModal({ participant, onClose, onVote, l
     return participant.description;
   };
 
+  // Функция для вычисления места участника
+  const getParticipantPlace = () => {
+    if (!allParticipants || allParticipants.length === 0) {
+      // Если allParticipants не передан, всё равно показываем место как 1
+      return 1;
+    }
+
+    const sortedParticipants = [...allParticipants].sort((a, b) => (b.votes_count || 0) - (a.votes_count || 0));
+    const place = sortedParticipants.findIndex(p => p.id === participant.id) + 1;
+    return place || 1; // Если место не найдено, показываем 1
+  };
+
+  // Функция для получения данных о месте (иконка, цвет, текст)
+  const getPlaceData = (place) => {
+    if (projectStatus === 'completed') {
+      switch (place) {
+        case 1:
+          return {
+            icon: Crown,
+            color: 'from-yellow-400 to-yellow-600',
+            bgColor: 'bg-yellow-50',
+            textColor: 'text-yellow-800',
+            borderColor: 'border-yellow-300',
+            text: getTranslation('participant.winner'),
+            shadow: 'shadow-yellow-200'
+          };
+        case 2:
+          return {
+            icon: Medal,
+            color: 'from-gray-400 to-gray-600',
+            bgColor: 'bg-gray-50',
+            textColor: 'text-gray-800',
+            borderColor: 'border-gray-300',
+            text: getTranslation('participant.second'),
+            shadow: 'shadow-gray-200'
+          };
+        case 3:
+          return {
+            icon: Award,
+            color: 'from-orange-400 to-orange-600',
+            bgColor: 'bg-orange-50',
+            textColor: 'text-orange-800',
+            borderColor: 'border-orange-300',
+            text: getTranslation('participant.third'),
+            shadow: 'shadow-orange-200'
+          };
+        default:
+          return {
+            icon: Trophy,
+            color: 'from-purple-500 to-indigo-600',
+            bgColor: 'bg-purple-50',
+            textColor: 'text-purple-800',
+            borderColor: 'border-purple-300',
+            text: `${place} ${getTranslation('participant.place')}`,
+            shadow: 'shadow-purple-200'
+          };
+      }
+    } else {
+      // Для активных проектов просто показываем текущее место
+      return {
+        icon: Trophy,
+        color: 'from-purple-500 to-indigo-600',
+        bgColor: 'bg-purple-50',
+        textColor: 'text-purple-800',
+        borderColor: 'border-purple-300',
+        text: `${place} ${getTranslation('participant.place')}`,
+        shadow: 'shadow-purple-200'
+      };
+    }
+  };
+
   const localizedDescription = getLocalizedDescription(participant);
+  const participantPlace = getParticipantPlace();
+  const placeData = participantPlace ? getPlaceData(participantPlace) : null;
 
   return (
     <>
@@ -349,6 +430,15 @@ export default function ParticipantDetailModal({ participant, onClose, onVote, l
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
           background-color: #a0aec0;
         }
+
+        @keyframes winner-glow {
+          0%, 100% { box-shadow: 0 0 20px rgba(251, 191, 36, 0.4); }
+          50% { box-shadow: 0 0 30px rgba(251, 191, 36, 0.6); }
+        }
+
+        .winner-glow {
+          animation: winner-glow 2s infinite;
+        }
       `}</style>
 
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
@@ -369,39 +459,54 @@ export default function ParticipantDetailModal({ participant, onClose, onVote, l
           {/* Контент с прокруткой */}
           <div className="overflow-y-auto custom-scrollbar" style={{ maxHeight: 'calc(90vh - 140px)' }}>
             <div className="p-4 space-y-6">
-              {/* Фото и основная информация - увеличенное фото */}
+              {/* Фото и основная информация */}
               <div className="text-center">
                 <div className="relative inline-block mb-4">
                   {participant.photo_url && !imageError ? (
                     <img
                       src={participant.photo_url}
                       alt={participant.name}
-                      className="w-40 h-40 object-cover rounded-2xl shadow-lg border-4 border-white"
+                      className={`w-40 h-40 object-cover rounded-2xl shadow-lg border-4 border-white ${
+                        placeData && participantPlace === 1 && projectStatus === 'completed' ? 'winner-glow' : ''
+                      }`}
                       onError={() => setImageError(true)}
                     />
                   ) : (
-                    <div className="w-40 h-40 bg-gradient-to-br from-purple-400 to-indigo-500 rounded-2xl flex items-center justify-center shadow-lg border-4 border-white">
+                    <div className={`w-40 h-40 bg-gradient-to-br from-purple-400 to-indigo-500 rounded-2xl flex items-center justify-center shadow-lg border-4 border-white ${
+                      placeData && participantPlace === 1 && projectStatus === 'completed' ? 'winner-glow' : ''
+                    }`}>
                       <User size={56} className="text-white" />
                     </div>
                   )}
-
-                  {/* Бейдж с количеством голосов */}
-                  <div className="absolute -bottom-2 -right-2 bg-white rounded-full shadow-lg border-2 border-purple-100 px-3 py-1">
-                    <div className="flex items-center gap-1">
-                      <Trophy size={14} className="text-purple-600" />
-                      <span className="text-sm font-bold text-purple-600 tilda-font">
-                        {participant.votes_count}
-                      </span>
-                    </div>
-                  </div>
                 </div>
 
-                <h4 className="text-xl font-bold text-gray-900 mb-2 tilda-font">
+                <h4 className="text-xl font-bold text-gray-900 mb-4 tilda-font">
                   {participant.name}
                 </h4>
 
-                <div className="text-sm text-gray-500 tilda-font">
-                  {participant.votes_count} {getTranslation('participant.votes')}
+                {/* Место участника с улучшенным дизайном */}
+                {participantPlace && placeData && (
+                  <div className={`inline-flex items-center gap-3 px-4 py-3 ${placeData.bgColor} ${placeData.borderColor} border-2 rounded-xl ${placeData.shadow} shadow-lg mb-3`}>
+                    <div className={`w-10 h-10 bg-gradient-to-r ${placeData.color} rounded-full flex items-center justify-center shadow-md`}>
+                      <placeData.icon size={20} className="text-white" />
+                    </div>
+                    <div className="text-left">
+                      <div className={`text-lg font-bold ${placeData.textColor} tilda-font`}>
+                        {placeData.text}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Количество голосов отдельным блоком */}
+                <div className="inline-flex items-center gap-2 px-4 py-2 bg-purple-50 border border-purple-200 rounded-lg shadow-sm">
+                  <Trophy size={16} className="text-purple-600" />
+                  <span className="text-lg font-bold text-purple-600 tilda-font">
+                    {participant.votes_count}
+                  </span>
+                  <span className="text-sm text-purple-600 tilda-font">
+                    {getTranslation('participant.votes')}
+                  </span>
                 </div>
               </div>
 

@@ -1057,20 +1057,24 @@ export default function ProjectDetailPage() {
           />
         )}
 
+
+
         {showParticipantModal && selectedParticipant && (
-          <ParticipantDetailModal
-            participant={selectedParticipant}
-            onClose={() => {
-              setShowParticipantModal(false);
-              setSelectedParticipant(null);
-            }}
-            onVote={isActive ? () => {
-              setShowParticipantModal(false);
-              setShowVotingModal(true);
-            } : null}
-            lang={currentLang}
-          />
-        )}
+  <ParticipantDetailModal
+    participant={selectedParticipant}
+    allParticipants={project.participants}  // ДОБАВИТЬ ЭТУ СТРОКУ
+    projectStatus={project.status}          // ДОБАВИТЬ ЭТУ СТРОКУ
+    onClose={() => {
+      setShowParticipantModal(false);
+      setSelectedParticipant(null);
+    }}
+    onVote={isActive ? () => {
+      setShowParticipantModal(false);
+      setShowVotingModal(true);
+    } : null}
+    lang={currentLang}
+  />
+)}
 
         {showAuthModal && (
           <AuthRequiredModal
