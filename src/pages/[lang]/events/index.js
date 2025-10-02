@@ -6,6 +6,7 @@ import { translations } from '../../../locales/translations';
 import Layout from '../../../components/Layout';
 import { Calendar, Search, Filter, X, ChevronDown } from 'lucide-react';
 
+
 export default function EventsPage() {
   const router = useRouter();
   const { lang = 'ru' } = router.query;
