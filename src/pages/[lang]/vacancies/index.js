@@ -465,7 +465,7 @@ export default function VacanciesList({ initialFilters = {}, getTranslation, cur
 
           <div className="space-y-4">
             {vacancies.map((vacancy) => (
-              <Link href={`/${activeLang}/vacancies/${vacancy.id}`} key={vacancy.id} legacyBehavior>
+              <Link href={`/${activeLang}/vacancy_detail/${vacancy.id}`} key={vacancy.id} legacyBehavior>
                 <a className="block vacancy-card">
                   <div className="bg-white rounded-xl shadow-sm overflow-hidden hover:border-purple-200 border border-transparent">
                     <div className="p-6">
